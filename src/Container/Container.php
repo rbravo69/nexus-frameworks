@@ -251,13 +251,9 @@ final class Container implements ContainerInterface
             throw ServiceNotFoundException::for($class);
         }
 
-        try {
-            /** @var class-string $class */
-            /** @var ReflectionClass<object> $reflection */
-            $reflection = new ReflectionClass($class);
-        } catch (ReflectionException) {
-            throw ServiceNotFoundException::for($class);
-        }
+        /** @var class-string $class */
+        /** @var ReflectionClass<object> $reflection */
+        $reflection = new ReflectionClass($class);
 
         if (!$reflection->isInstantiable()) {
             throw ServiceNotFoundException::for($class);
