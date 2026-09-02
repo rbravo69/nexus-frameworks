@@ -59,7 +59,7 @@ final class MigrationRunner
         $count = 0;
 
         foreach ($rows as $row) {
-            $id = (string) $row['migration'];
+            $id = $this->stringValue($row['migration'] ?? null, 'migration');
             $migration = $byId[$id] ?? throw new \RuntimeException(sprintf('Migration "%s" is not available for rollback.', $id));
 
             $this->connection->transaction(function (ConnectionInterface $db) use ($migration, $id): void {
@@ -76,10 +76,13 @@ final class MigrationRunner
     public function applied(): array
     {
         $this->ensureRepository();
-        return array_map(
-            static fn (array $row): string => (string) $row['migration'],
-            $this->connection->select('SELECT migration FROM nexus_migrations ORDER BY id'),
-        );
+        $applied = [];
+
+        foreach ($this->connection->select('SELECT migration FROM nexus_migrations ORDER BY id') as $row) {
+            $applied[] = $this->stringValue($row['migration'] ?? null, 'migration');
+        }
+
+        return $applied;
     }
 
     private function ensureRepository(): void
@@ -100,6 +103,25 @@ final class MigrationRunner
     private function lastBatch(): int
     {
         $rows = $this->connection->select('SELECT MAX(batch) AS batch FROM nexus_migrations');
-        return (int) ($rows[0]['batch'] ?? 0);
+        $value = $rows[0]['batch'] ?? null;
+
+        if ($value === null) {
+            return 0;
+        }
+
+        if (!is_int($value) && !is_string($value) && !is_float($value)) {
+            throw new \UnexpectedValueException('Migration batch must be numeric.');
+        }
+
+        return (int) $value;
+    }
+
+    private function stringValue(mixed $value, string $field): string
+    {
+        if (!is_string($value) && !is_int($value) && !is_float($value)) {
+            throw new \UnexpectedValueException(sprintf('Database field "%s" must be scalar.', $field));
+        }
+
+        return (string) $value;
     }
 }
