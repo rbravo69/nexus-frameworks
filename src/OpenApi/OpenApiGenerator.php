@@ -13,7 +13,7 @@ use ReflectionMethod;
  * @phpstan-type OpenApiResponse array{description: string}
  * @phpstan-type OpenApiParameter array{name: string, in: string, required: bool, schema: array{type: string}}
  * @phpstan-type OpenApiOperation array{
- *     responses: array<string, OpenApiResponse>,
+ *     responses: array<int, OpenApiResponse>,
  *     operationId?: string,
  *     summary?: string,
  *     description?: string,
@@ -131,14 +131,14 @@ final class OpenApiGenerator
 
     /**
      * @param array<int, string> $responses
-     * @return array<string, OpenApiResponse>
+     * @return array<int, OpenApiResponse>
      */
     private function responses(array $responses): array
     {
         $document = [];
 
         foreach ($responses as $status => $description) {
-            $document[(string) $status] = ['description' => $description];
+            $document[$status] = ['description' => $description];
         }
 
         return $document;
