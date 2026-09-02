@@ -44,3 +44,12 @@ service outside its active boundary is an error.
 
 Bindings are lazy. A service is built only when requested, and `lazy()` can
 defer even the container lookup until a value is actually consumed.
+
+## CLI
+
+The CLI has its own small command kernel, input parser and output contracts. It
+does not require HTTP or database capabilities. Commands are registered
+explicitly and return stable process exit codes (`0`, `1` or `2`).
+
+Project generation supports interactive and non-interactive operation. File
+generators never overwrite an existing file.

@@ -19,5 +19,9 @@
 - The DI container implements PSR-11 and keeps registration explicit.
 - Transient is the default lifetime; contextual scopes must be opened
   explicitly and always discard their instances when closed.
+- The CLI remains dependency-light and uses explicit commands and exit codes.
+- Project generation and `make:*` commands never overwrite existing files.
+- `add` and `remove` update the project capability manifest; package lifecycle
+  and runtime capability loading belong to Phase 04.
 
 This file records durable decisions. Significant amendments require an RFC.

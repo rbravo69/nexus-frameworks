@@ -75,6 +75,19 @@ composer install
 composer quality
 ```
 
+## CLI
+
+```bash
+vendor/bin/nexus list
+vendor/bin/nexus new booking-api --type=api --no-interaction
+vendor/bin/nexus make:module Booking
+vendor/bin/nexus doctor
+```
+
+Running `nexus new` without `--type` starts a focused wizard with six presets:
+API REST, microservice, gRPC service, module, traditional monolith and modular
+monolith. CI can use `--no-interaction` for deterministic generation.
+
 See [the architecture](docs/ARCHITECTURE.md), [roadmap](docs/ROADMAP.md), and
 [contribution guide](CONTRIBUTING.md) before proposing a change.
 

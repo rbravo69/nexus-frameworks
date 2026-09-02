@@ -28,6 +28,9 @@
             "Nexus\\Tests\\": "tests/"
         }
     },
+    "bin": [
+        "bin/nexus"
+    ],
     "scripts": {
         "test": "phpunit",
         "analyse": "phpstan analyse --no-progress",
