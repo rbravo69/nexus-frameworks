@@ -17,7 +17,7 @@
 - Extend Schema, migrations and Database First to SQL Server and Oracle ✅
 - MongoDB collections, document repositories, indexes and basic Database First ✅
 - Cache core and optional Redis ✅
-- CQRS and events
+- CQRS and events ✅
 - Seeders, factories and fake data
 - Optional Docker integration
 - Testing, static analysis and benchmarks
