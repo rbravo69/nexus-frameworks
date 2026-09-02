@@ -247,7 +247,12 @@ final class Container implements ContainerInterface
 
     private function autowire(string $class): object
     {
+        if (!class_exists($class)) {
+            throw ServiceNotFoundException::for($class);
+        }
+
         try {
+            /** @var class-string $class */
             /** @var ReflectionClass<object> $reflection */
             $reflection = new ReflectionClass($class);
         } catch (ReflectionException) {
