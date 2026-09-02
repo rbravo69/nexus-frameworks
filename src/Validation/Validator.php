@@ -97,6 +97,10 @@ final class Validator
             throw new \InvalidArgumentException('The in rule requires at least one value.');
         }
 
+        if (!is_string($value) && !is_int($value) && !is_float($value) && !is_bool($value)) {
+            return 'The selected value is invalid.';
+        }
+
         return in_array((string) $value, explode(',', $argument), true)
             ? null
             : 'The selected value is invalid.';
