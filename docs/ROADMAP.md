@@ -9,7 +9,7 @@
 - Modules and architectural presets ✅
 - HTTP and routing ✅
 - REST, validation and OpenAPI ✅
-- Database core, PostgreSQL, MySQL and SQLite
+- Database core, PostgreSQL, MySQL and SQLite ✅
 - Optional Eloquent integration
 - Migrations, Code First and basic Database First
 - Cache, optional Redis, CQRS and events
