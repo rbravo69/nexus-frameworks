@@ -10,8 +10,12 @@
 - HTTP and routing ✅
 - REST, validation and OpenAPI ✅
 - Database core, PostgreSQL, MySQL and SQLite ✅
+- SQL Server and Oracle relational database support
+- Optional MongoDB document persistence
 - Optional Eloquent integration ✅
 - Migrations, Code First and basic Database First ✅
+- Extend Schema, migrations and Database First to SQL Server and Oracle
+- MongoDB collections, document repositories, indexes and basic Database First
 - Cache, optional Redis, CQRS and events
 - Seeders, factories and fake data
 - Optional Docker integration
@@ -19,9 +23,10 @@
 
 ## After v0.1
 
-- MongoDB, async, gRPC and messaging
+- Advanced MongoDB capabilities and transactions where supported
+- Async, gRPC and messaging
 - RabbitMQ, Kafka and SQS adapters
-- SQL Server and Oracle
+- Advanced relational introspection: views, materialized views, procedures, functions, triggers and sequences
 - Architecture Guard and observability
 - Smart project wizard and developer tooling
 
