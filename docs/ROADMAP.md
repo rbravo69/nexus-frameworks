@@ -7,7 +7,8 @@
 - CLI and project generation ✅
 - Capability installation and runtime loading ✅
 - Modules and architectural presets ✅
-- HTTP, routing, REST, validation and OpenAPI
+- HTTP and routing ✅
+- REST, validation and OpenAPI
 - Database core, PostgreSQL, MySQL and SQLite
 - Optional Eloquent integration
 - Migrations, Code First and basic Database First
