@@ -16,8 +16,12 @@
         "psr/container": "^2.0"
     },
     "require-dev": {
+        "illuminate/database": "^13.0",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^12.0"
+    },
+    "suggest": {
+        "illuminate/database": "Required only when using the optional Nexus Eloquent integration."
     },
     "autoload": {
         "psr-4": {
