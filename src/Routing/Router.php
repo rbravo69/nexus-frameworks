@@ -4,31 +4,35 @@ declare(strict_types=1);
 
 namespace Nexus\Routing;
 
+use Closure;
 use Nexus\Exception\MethodNotAllowedException;
 use Nexus\Exception\RouteNotFoundException;
 use Nexus\Http\MiddlewareInterface;
+use Nexus\Http\Request;
+use Nexus\Http\Response;
 
 final class Router
 {
     /** @var list<Route> */
     private array $routes = [];
 
-    /** @var list<array{prefix: string, middleware: list<MiddlewareInterface|class-string<MiddlewareInterface>>}> */
+    /** @var list<array{prefix: string, middleware: list<class-string<MiddlewareInterface>>}> */
     private array $groups = [];
 
     /**
      * @param string|list<string> $methods
-     * @param callable|array{class-string, non-empty-string} $handler
-     * @param list<MiddlewareInterface|class-string<MiddlewareInterface>> $middleware
+     * @param callable(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} $handler
+     * @param list<class-string<MiddlewareInterface>> $middleware
      */
     public function add(
         string|array $methods,
         string $path,
-        mixed $handler,
+        callable|array $handler,
         array $middleware = [],
         ?string $name = null,
     ): Route {
-        $methods = is_string($methods) ? [$methods] : array_values($methods);
+        $methodList = is_string($methods) ? [$methods] : $methods;
+        $normalizedHandler = is_array($handler) ? $handler : Closure::fromCallable($handler);
         $prefix = '';
         $groupMiddleware = [];
 
@@ -38,45 +42,51 @@ final class Router
         }
 
         $fullPath = $this->normalizePath($prefix . '/' . ltrim($path, '/'));
-        $route = new Route($methods, $fullPath, $handler, [...$groupMiddleware, ...$middleware], $name);
+        $route = new Route(
+            $methodList,
+            $fullPath,
+            $normalizedHandler,
+            [...$groupMiddleware, ...$middleware],
+            $name,
+        );
         $this->routes[] = $route;
 
         return $route;
     }
 
-    /** @param callable|array{class-string, non-empty-string} $handler */
-    public function get(string $path, mixed $handler): Route
+    /** @param callable(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} $handler */
+    public function get(string $path, callable|array $handler): Route
     {
         return $this->add('GET', $path, $handler);
     }
 
-    /** @param callable|array{class-string, non-empty-string} $handler */
-    public function post(string $path, mixed $handler): Route
+    /** @param callable(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} $handler */
+    public function post(string $path, callable|array $handler): Route
     {
         return $this->add('POST', $path, $handler);
     }
 
-    /** @param callable|array{class-string, non-empty-string} $handler */
-    public function put(string $path, mixed $handler): Route
+    /** @param callable(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} $handler */
+    public function put(string $path, callable|array $handler): Route
     {
         return $this->add('PUT', $path, $handler);
     }
 
-    /** @param callable|array{class-string, non-empty-string} $handler */
-    public function patch(string $path, mixed $handler): Route
+    /** @param callable(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} $handler */
+    public function patch(string $path, callable|array $handler): Route
     {
         return $this->add('PATCH', $path, $handler);
     }
 
-    /** @param callable|array{class-string, non-empty-string} $handler */
-    public function delete(string $path, mixed $handler): Route
+    /** @param callable(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} $handler */
+    public function delete(string $path, callable|array $handler): Route
     {
         return $this->add('DELETE', $path, $handler);
     }
 
     /**
      * @param callable(self): void $routes
-     * @param list<MiddlewareInterface|class-string<MiddlewareInterface>> $middleware
+     * @param list<class-string<MiddlewareInterface>> $middleware
      */
     public function group(string $prefix, callable $routes, array $middleware = []): void
     {

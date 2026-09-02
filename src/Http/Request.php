@@ -8,7 +8,7 @@ final class Request
 {
     /**
      * @param array<string, string|list<string>> $headers
-     * @param array<string, scalar|list<scalar>|null> $query
+     * @param array<string, mixed> $query
      * @param array<string, mixed> $attributes
      */
     public function __construct(
@@ -23,19 +23,19 @@ final class Request
 
     public static function fromGlobals(): self
     {
-        $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
-        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+        $methodValue = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        $uriValue = $_SERVER['REQUEST_URI'] ?? '/';
+        $method = is_string($methodValue) ? strtoupper($methodValue) : 'GET';
+        $uri = is_string($uriValue) ? $uriValue : '/';
         $path = parse_url($uri, PHP_URL_PATH);
-
-        /** @var array<string, scalar|list<scalar>|null> $query */
-        $query = $_GET;
+        $body = file_get_contents('php://input');
 
         return new self(
             $method,
             is_string($path) && $path !== '' ? $path : '/',
             self::headersFromServer($_SERVER),
-            $query,
-            file_get_contents('php://input') ?: null,
+            self::queryFromGlobals($_GET),
+            $body !== false && $body !== '' ? $body : null,
         );
     }
 
@@ -68,7 +68,7 @@ final class Request
         return $default;
     }
 
-    /** @return array<string, scalar|list<scalar>|null> */
+    /** @return array<string, mixed> */
     public function query(): array
     {
         return $this->query;
@@ -99,9 +99,7 @@ final class Request
         );
     }
 
-    /**
-     * @param array<string, mixed> $attributes
-     */
+    /** @param array<string, mixed> $attributes */
     public function withAttributes(array $attributes): self
     {
         return new self(
@@ -115,7 +113,7 @@ final class Request
     }
 
     /**
-     * @param array<string, mixed> $server
+     * @param array<array-key, mixed> $server
      * @return array<string, string>
      */
     private static function headersFromServer(array $server): array
@@ -134,5 +132,22 @@ final class Request
         }
 
         return $headers;
+    }
+
+    /**
+     * @param array<array-key, mixed> $query
+     * @return array<string, mixed>
+     */
+    private static function queryFromGlobals(array $query): array
+    {
+        $normalized = [];
+
+        foreach ($query as $key => $value) {
+            if (is_string($key)) {
+                $normalized[$key] = $value;
+            }
+        }
+
+        return $normalized;
     }
 }

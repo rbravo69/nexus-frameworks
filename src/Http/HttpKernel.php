@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nexus\Http;
 
-use Closure;
 use Nexus\Contracts\ContainerInterface;
 use Nexus\Exception\MethodNotAllowedException;
 use Nexus\Exception\RouteNotFoundException;
@@ -43,7 +42,7 @@ final class HttpKernel implements RequestHandlerInterface
                     }
                 },
             ))->handle($request);
-        } catch (RouteNotFoundException $exception) {
+        } catch (RouteNotFoundException) {
             return Response::json(['error' => 'Not Found'], 404);
         } catch (MethodNotAllowedException $exception) {
             return Response::json(
@@ -69,10 +68,19 @@ final class HttpKernel implements RequestHandlerInterface
         if (is_array($handler)) {
             [$class, $method] = $handler;
             $controller = $this->container->make($class);
-            $response = $controller->{$method}($request, $match->parameters);
-        } else {
-            $callable = Closure::fromCallable($handler);
+            $callable = [$controller, $method];
+
+            if (!is_callable($callable)) {
+                throw new \UnexpectedValueException(sprintf(
+                    'Controller %s::%s is not callable.',
+                    $class,
+                    $method,
+                ));
+            }
+
             $response = $callable($request, $match->parameters);
+        } else {
+            $response = $handler($request, $match->parameters);
         }
 
         if (!$response instanceof Response) {
@@ -88,11 +96,6 @@ final class HttpKernel implements RequestHandlerInterface
         $resolved = [];
 
         foreach ($match->route->middleware() as $middleware) {
-            if ($middleware instanceof MiddlewareInterface) {
-                $resolved[] = $middleware;
-                continue;
-            }
-
             $instance = $this->container->make($middleware);
 
             if (!$instance instanceof MiddlewareInterface) {

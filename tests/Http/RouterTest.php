@@ -17,7 +17,7 @@ final class RouterTest extends TestCase
     {
         $router = new Router();
         $router->get('/health', static fn (Request $request, array $parameters): Response => Response::text('ok'));
-        $router->get('/users/{id}', static fn (Request $request, array $parameters): Response => Response::text($parameters['id']));
+        $router->get('/users/{id}', static fn (Request $request, array $parameters): Response => Response::text('user'));
 
         self::assertSame([], $router->match('GET', '/health')->parameters);
         self::assertSame(['id' => '42'], $router->match('GET', '/users/42')->parameters);
@@ -51,7 +51,7 @@ final class RouterTest extends TestCase
     {
         $router = new Router();
         $router->group('/api/v1', static function (Router $router): void {
-            $router->get('/users/{id}', static fn (Request $request, array $parameters): Response => Response::text($parameters['id']));
+            $router->get('/users/{id}', static fn (Request $request, array $parameters): Response => Response::text('user'));
         });
 
         self::assertSame(['id' => '7'], $router->match('GET', '/api/v1/users/7')->parameters);

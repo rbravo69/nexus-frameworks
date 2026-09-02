@@ -4,19 +4,20 @@ declare(strict_types=1);
 
 namespace Nexus\Routing;
 
+use Closure;
 use Nexus\Http\MiddlewareInterface;
 
 final class Route
 {
     /**
      * @param list<string> $methods
-     * @param callable|array{class-string, non-empty-string} $handler
-     * @param list<MiddlewareInterface|class-string<MiddlewareInterface>> $middleware
+     * @param Closure(Request, array<string, string>): \Nexus\Http\Response|array{class-string<object>, non-empty-string} $handler
+     * @param list<class-string<MiddlewareInterface>> $middleware
      */
     public function __construct(
         private readonly array $methods,
         private readonly string $path,
-        private readonly mixed $handler,
+        private readonly Closure|array $handler,
         private readonly array $middleware = [],
         private readonly ?string $name = null,
     ) {
@@ -40,13 +41,13 @@ final class Route
         return $this->path;
     }
 
-    /** @return callable|array{class-string, non-empty-string} */
-    public function handler(): mixed
+    /** @return Closure(Request, array<string, string>): \Nexus\Http\Response|array{class-string<object>, non-empty-string} */
+    public function handler(): Closure|array
     {
         return $this->handler;
     }
 
-    /** @return list<MiddlewareInterface|class-string<MiddlewareInterface>> */
+    /** @return list<class-string<MiddlewareInterface>> */
     public function middleware(): array
     {
         return $this->middleware;
@@ -83,7 +84,7 @@ final class Route
         $parameters = [];
 
         foreach ($matches as $key => $value) {
-            if (is_string($key) && is_string($value)) {
+            if (is_string($key)) {
                 $parameters[$key] = rawurldecode($value);
             }
         }
