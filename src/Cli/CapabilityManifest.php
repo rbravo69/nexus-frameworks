@@ -50,6 +50,23 @@ final readonly class CapabilityManifest
     }
 
     /**
+     * @param list<string> $capabilities
+     * @throws JsonException
+     */
+    public function replace(array $capabilities): void
+    {
+        $normalized = [];
+
+        foreach ($capabilities as $capability) {
+            $normalized[] = $this->normalize($capability);
+        }
+
+        $normalized = array_values(array_unique($normalized));
+        sort($normalized, SORT_STRING);
+        $this->save($normalized);
+    }
+
+    /**
      * @return list<string>
      * @throws JsonException
      */

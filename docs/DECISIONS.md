@@ -23,5 +23,11 @@
 - Project generation and `make:*` commands never overwrite existing files.
 - `add` and `remove` update the project capability manifest; package lifecycle
   and runtime capability loading belong to Phase 04.
+- Capabilities declare their Composer package, provider and dependencies in an
+  explicit catalog; dependency resolution is deterministic and rejects cycles.
+- Capability installation is transactional where Nexus controls state: failed
+  package operations restore the manifest and best-effort rollback packages.
+- Capability providers register and boot before application modules; shutdown
+  reverses that relationship so modules can release capability-backed services.
 
 This file records durable decisions. Significant amendments require an RFC.

@@ -5,7 +5,7 @@
 - Core, lifecycle, configuration and module registry ✅
 - Dependency injection container ✅
 - CLI and project generation ✅
-- Capability installation and runtime loading
+- Capability installation and runtime loading ✅
 - Modules and architectural presets
 - HTTP, routing, REST, validation and OpenAPI
 - Database core, PostgreSQL, MySQL and SQLite

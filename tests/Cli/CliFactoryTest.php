@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Nexus\Tests\Cli;
 
+use Nexus\Capability\CapabilityCatalog;
+use Nexus\Capability\CapabilityDefinition;
 use Nexus\Cli\BufferedOutput;
 use Nexus\Cli\CliFactory;
 use Nexus\Cli\ExitCode;
 use Nexus\Tests\Support\QueuePrompter;
+use Nexus\Tests\Support\DatabaseCapability;
+use Nexus\Tests\Support\RecordingPackageManager;
 use Nexus\Tests\Support\RecordingProcessRunner;
 use Nexus\Tests\Support\TemporaryDirectory;
 use PHPUnit\Framework\Attributes\After;
@@ -130,5 +134,31 @@ final class CliFactoryTest extends TestCase
         self::assertSame(ExitCode::Success, $cli->run(['nexus', 'about']));
         self::assertSame(ExitCode::Invalid, $cli->run(['nexus', 'unknown']));
         self::assertStringContainsString('Nexus Framework 0.1.0-dev', $output->content());
+    }
+
+    public function testAddAndRemoveExecuteTheCapabilityPackageLifecycle(): void
+    {
+        $this->temporaryDirectory = new TemporaryDirectory();
+        $output = new BufferedOutput();
+        $packages = new RecordingPackageManager();
+        $catalog = (new CapabilityCatalog())->add(new CapabilityDefinition(
+            'database',
+            'nexus/database',
+            DatabaseCapability::class,
+        ));
+        $cli = (new CliFactory())->create(
+            output: $output,
+            workingDirectory: $this->temporaryDirectory->path(),
+            capabilityCatalog: $catalog,
+            packageManager: $packages,
+        );
+
+        self::assertSame(ExitCode::Success, $cli->run(['nexus', 'add', 'database']));
+        self::assertSame(['nexus/database'], $packages->installed);
+        self::assertStringContainsString('Installed capability: database', $output->content());
+
+        self::assertSame(ExitCode::Success, $cli->run(['nexus', 'remove', 'database']));
+        self::assertSame(['nexus/database'], $packages->removed);
+        self::assertStringContainsString('Removed capability: database', $output->content());
     }
 }
