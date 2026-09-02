@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexus\Tests\Database\Eloquent;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
 use Nexus\Database\DatabaseConfig;
 use Nexus\Database\Eloquent\EloquentConfig;
 use Nexus\Database\Eloquent\EloquentManager;
@@ -25,7 +26,7 @@ final class EloquentManagerTest extends TestCase
             ->boot();
 
         $schema = $manager->connection()->getSchemaBuilder();
-        $schema->create('users', static function ($table): void {
+        $schema->create('users', static function (Blueprint $table): void {
             $table->increments('id');
             $table->string('name');
         });
@@ -72,6 +73,7 @@ final class EloquentManagerTest extends TestCase
     }
 }
 
+/** @property string $name */
 final class EloquentUser extends Model
 {
     public $timestamps = false;
