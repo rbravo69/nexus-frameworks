@@ -37,6 +37,19 @@ final class ConnectionFactory
                 $config->database,
                 $config->charset ?? 'utf8mb4',
             ),
+            'sqlsrv' => sprintf(
+                'sqlsrv:Server=%s,%d;Database=%s',
+                $config->host ?? '127.0.0.1',
+                $config->port ?? 1433,
+                $config->database,
+            ),
+            'oci' => sprintf(
+                'oci:dbname=//%s:%d/%s;charset=%s',
+                $config->host ?? '127.0.0.1',
+                $config->port ?? 1521,
+                $config->database,
+                $config->charset ?? 'AL32UTF8',
+            ),
         };
     }
 
