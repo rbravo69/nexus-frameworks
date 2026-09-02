@@ -25,7 +25,9 @@
         "ext-pdo_sqlsrv": "Required for SQL Server connections through PDO.",
         "ext-pdo_oci": "Required for Oracle connections through PDO.",
         "ext-mongodb": "Required by concrete MongoDB adapters.",
-        "mongodb/mongodb": "Recommended official PHP library when implementing the MongoDB connection adapter."
+        "mongodb/mongodb": "Recommended official PHP library when implementing the MongoDB connection adapter.",
+        "ext-redis": "Recommended for a native Redis client adapter.",
+        "predis/predis": "Alternative pure-PHP Redis client adapter."
     },
     "autoload": {
         "psr-4": {
