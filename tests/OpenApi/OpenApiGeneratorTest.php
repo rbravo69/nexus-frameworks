@@ -40,6 +40,7 @@ final class OpenApiUserController
         tags: ['Users'],
         responses: [200 => 'User found', 404 => 'User not found'],
     )]
+    /** @param array<string, string> $parameters */
     public function show(Request $request, array $parameters): Response
     {
         return Response::json(['id' => $parameters['id']]);
