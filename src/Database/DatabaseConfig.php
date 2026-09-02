@@ -6,7 +6,7 @@ namespace Nexus\Database;
 
 final readonly class DatabaseConfig
 {
-    /** @var 'pgsql'|'mysql'|'sqlite' */
+    /** @var 'pgsql'|'mysql'|'sqlite'|'sqlsrv'|'oci' */
     public string $driver;
 
     /** @var array<int, mixed> */
@@ -23,15 +23,15 @@ final readonly class DatabaseConfig
         public ?string $charset = null,
         array $options = [],
     ) {
-        if (!in_array($driver, ['pgsql', 'mysql', 'sqlite'], true)) {
+        if (!in_array($driver, ['pgsql', 'mysql', 'sqlite', 'sqlsrv', 'oci'], true)) {
             throw new \InvalidArgumentException(sprintf('Unsupported database driver "%s".', $driver));
         }
 
         if ($database === '') {
-            throw new \InvalidArgumentException('Database name or SQLite path cannot be empty.');
+            throw new \InvalidArgumentException('Database name, service name, or SQLite path cannot be empty.');
         }
 
-        /** @var 'pgsql'|'mysql'|'sqlite' $driver */
+        /** @var 'pgsql'|'mysql'|'sqlite'|'sqlsrv'|'oci' $driver */
         $this->driver = $driver;
         $this->options = $options;
     }
