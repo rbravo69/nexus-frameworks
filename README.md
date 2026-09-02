@@ -82,7 +82,7 @@ vendor/bin/nexus list
 vendor/bin/nexus new booking-api --type=api --no-interaction
 vendor/bin/nexus add redis
 vendor/bin/nexus remove redis
-vendor/bin/nexus make:module Booking
+vendor/bin/nexus make:module Booking --architecture=hexagonal --depends=identity
 vendor/bin/nexus doctor
 ```
 
@@ -94,6 +94,12 @@ Capabilities are Composer packages selected in `nexus.json`. Nexus installs
 their dependencies in order, prevents unsafe removals and loads only the
 selected providers during application bootstrap. See the
 [capabilities guide](docs/CAPABILITIES.md).
+
+Every module chooses its own level of ceremony. Available presets are
+`minimal`, `mvc`, `layered`, `modular`, `hexagonal`, `clean`, `ddd`, `cqrs` and
+`custom`. The generator creates only directories containing real files, and
+the runtime detects missing dependencies and cycles before registration. See
+the [modules guide](docs/MODULES.md).
 
 See [the architecture](docs/ARCHITECTURE.md), [roadmap](docs/ROADMAP.md), and
 [contribution guide](CONTRIBUTING.md) before proposing a change.

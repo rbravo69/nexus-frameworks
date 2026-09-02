@@ -15,6 +15,9 @@ final class ModuleRegistry
 
     private bool $locked = false;
 
+    /** @var array<string, ModuleInterface>|null */
+    private ?array $executionOrder = null;
+
     public function add(ModuleInterface $module): self
     {
         if ($this->locked) {
@@ -56,22 +59,31 @@ final class ModuleRegistry
     {
         $this->locked = true;
 
-        foreach ($this->modules as $module) {
+        $this->executionOrder = (new ModuleDependencyResolver())->resolve($this->modules);
+
+        foreach ($this->executionOrder as $module) {
             $module->register($application);
         }
     }
 
     public function bootAll(Application $application): void
     {
-        foreach ($this->modules as $module) {
+        foreach ($this->orderedModules() as $module) {
             $module->boot($application);
         }
     }
 
     public function shutdownAll(Application $application): void
     {
-        foreach (array_reverse($this->modules, true) as $module) {
+        foreach (array_reverse($this->orderedModules(), true) as $module) {
             $module->shutdown($application);
         }
+    }
+
+    /** @return array<string, ModuleInterface> */
+    private function orderedModules(): array
+    {
+        return $this->executionOrder
+            ?? (new ModuleDependencyResolver())->resolve($this->modules);
     }
 }

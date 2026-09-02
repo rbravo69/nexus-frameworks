@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexus\Cli;
 
 use Nexus\Exception\InvalidInputException;
+use Nexus\Module\ModuleArchitecture;
 
 final readonly class CodeGenerator
 {
@@ -12,48 +13,20 @@ final readonly class CodeGenerator
     {
     }
 
-    public function module(string $name, string $projectPath): string
+    /** @param list<string> $dependencies */
+    public function module(
+        string $name,
+        string $projectPath,
+        ModuleArchitecture $architecture = ModuleArchitecture::Minimal,
+        array $dependencies = [],
+    ): string
     {
-        $class = $this->className($name, 'Module');
-        $module = substr($class, 0, -strlen('Module'));
-        $path = sprintf('src/%s/%s.php', $module, $class);
-        $serviceName = strtolower(preg_replace('/(?<!^)[A-Z]/', '-$0', $module) ?? $module);
-        $content = str_replace(
-            ['{{ namespace }}', '{{ class }}', '{{ name }}'],
-            ['App\\' . $module, $class, $serviceName],
-            <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace {{ namespace }};
-
-use Nexus\Application;
-use Nexus\Contracts\ModuleInterface;
-
-final class {{ class }} implements ModuleInterface
-{
-    public function name(): string
-    {
-        return '{{ name }}';
-    }
-
-    public function register(Application $application): void
-    {
-    }
-
-    public function boot(Application $application): void
-    {
-    }
-
-    public function shutdown(Application $application): void
-    {
-    }
-}
-PHP,
-        ) . PHP_EOL;
-
-        return $this->write($projectPath, $path, $content);
+        return (new ModuleScaffolder($this->filesystem))->generate(
+            $name,
+            $projectPath,
+            $architecture,
+            $dependencies,
+        );
     }
 
     public function controller(string $name, string $projectPath): string
