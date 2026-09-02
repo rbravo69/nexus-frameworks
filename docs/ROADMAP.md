@@ -18,7 +18,7 @@
 - MongoDB collections, document repositories, indexes and basic Database First ✅
 - Cache core and optional Redis ✅
 - CQRS and events ✅
-- Seeders, factories and fake data
+- Seeders, factories and fake data ✅
 - Optional Docker integration
 - Testing, static analysis and benchmarks
 
