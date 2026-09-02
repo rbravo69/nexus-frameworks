@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Nexus;
 
+use Nexus\Capability\CapabilityCatalog;
+use Nexus\Capability\CapabilityLoader;
+use Nexus\Capability\CapabilityRegistry;
+use Nexus\Capability\CapabilityResolver;
+use Nexus\Cli\CapabilityManifest;
 use Nexus\Container\Container;
 use Nexus\Configuration\ConfigurationLoader;
 use Nexus\Contracts\ConfigurationInterface;
@@ -24,6 +29,8 @@ final class Bootstrap
         ?ModuleRegistry $modules = null,
         ?LifecycleInterface $lifecycle = null,
         ?ContainerInterface $container = null,
+        ?CapabilityCatalog $capabilityCatalog = null,
+        ?CapabilityRegistry $capabilities = null,
     ): Application {
         $environment ??= self::environmentVariable('APP_ENV', 'production');
         $debug ??= self::booleanEnvironmentVariable('APP_DEBUG', false);
@@ -34,18 +41,23 @@ final class Bootstrap
         );
 
         $modules ??= new ModuleRegistry();
+        $capabilityCatalog ??= CapabilityCatalog::official();
+        $capabilities ??= new CapabilityRegistry();
         $lifecycle ??= new Lifecycle();
         $container ??= new Container();
 
         $container
             ->instance(Environment::class, $runtimeEnvironment)
             ->instance(ConfigurationInterface::class, $configuration)
+            ->instance(CapabilityCatalog::class, $capabilityCatalog)
+            ->instance(CapabilityRegistry::class, $capabilities)
             ->instance(ModuleRegistry::class, $modules)
             ->instance(LifecycleInterface::class, $lifecycle);
 
         $application = new Application(
             environment: $runtimeEnvironment,
             configuration: $configuration,
+            capabilities: $capabilities,
             modules: $modules,
             lifecycle: $lifecycle,
             container: $container,
@@ -54,6 +66,11 @@ final class Bootstrap
         $container
             ->instance(Application::class, $application)
             ->instance(KernelInterface::class, $application);
+
+        (new CapabilityLoader(
+            new CapabilityResolver($capabilityCatalog),
+            $container,
+        ))->load(new CapabilityManifest($basePath), $capabilities);
 
         return $application;
     }

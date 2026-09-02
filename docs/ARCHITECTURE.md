@@ -27,13 +27,27 @@ application to use the same degree of ceremony.
 Application startup is deterministic:
 
 1. `before_boot`
-2. register every module
-3. `after_register`
-4. boot every module
-5. `after_boot`
+2. register selected capabilities in dependency order
+3. register every module
+4. `after_register`
+5. boot selected capabilities in dependency order
+6. boot every module
+7. `after_boot`
 
-Shutdown runs modules in reverse registration order between `before_shutdown`
-and `after_shutdown`.
+Shutdown runs modules first and capabilities afterward; each group uses reverse
+registration order between `before_shutdown` and `after_shutdown`.
+
+## Capabilities
+
+Each capability has explicit metadata: stable name, Composer package, provider
+class and dependencies. The resolver rejects unknown names and dependency
+cycles. The installer keeps Composer and `nexus.json` synchronized, rolls back
+failed operations and refuses to remove a capability required by another
+installed capability.
+
+Runtime loading is manifest-driven. Providers are resolved through the DI
+container, then participate in `register`, `boot` and `shutdown`. An optional
+package that is not selected is never instantiated.
 
 ## Dependency injection
 

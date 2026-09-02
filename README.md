@@ -80,6 +80,8 @@ composer quality
 ```bash
 vendor/bin/nexus list
 vendor/bin/nexus new booking-api --type=api --no-interaction
+vendor/bin/nexus add redis
+vendor/bin/nexus remove redis
 vendor/bin/nexus make:module Booking
 vendor/bin/nexus doctor
 ```
@@ -87,6 +89,11 @@ vendor/bin/nexus doctor
 Running `nexus new` without `--type` starts a focused wizard with six presets:
 API REST, microservice, gRPC service, module, traditional monolith and modular
 monolith. CI can use `--no-interaction` for deterministic generation.
+
+Capabilities are Composer packages selected in `nexus.json`. Nexus installs
+their dependencies in order, prevents unsafe removals and loads only the
+selected providers during application bootstrap. See the
+[capabilities guide](docs/CAPABILITIES.md).
 
 See [the architecture](docs/ARCHITECTURE.md), [roadmap](docs/ROADMAP.md), and
 [contribution guide](CONTRIBUTING.md) before proposing a change.

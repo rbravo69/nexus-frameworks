@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nexus;
 
+use Nexus\Capability\CapabilityRegistry;
 use Nexus\Contracts\ConfigurationInterface;
 use Nexus\Contracts\ContainerInterface;
 use Nexus\Contracts\KernelInterface;
@@ -20,6 +21,7 @@ final class Application implements KernelInterface
     public function __construct(
         private readonly Environment $environment,
         private readonly ConfigurationInterface $configuration,
+        private readonly CapabilityRegistry $capabilities,
         private readonly ModuleRegistry $modules,
         private readonly LifecycleInterface $lifecycle,
         private readonly ContainerInterface $container,
@@ -43,8 +45,10 @@ final class Application implements KernelInterface
 
         try {
             $this->lifecycle->dispatch(LifecycleEvent::BeforeBoot, $this);
+            $this->capabilities->registerAll($this);
             $this->modules->registerAll($this);
             $this->lifecycle->dispatch(LifecycleEvent::AfterRegister, $this);
+            $this->capabilities->bootAll($this);
             $this->modules->bootAll($this);
             $this->state = ApplicationState::Booted;
             $this->lifecycle->dispatch(LifecycleEvent::AfterBoot, $this);
@@ -73,6 +77,7 @@ final class Application implements KernelInterface
         try {
             $this->lifecycle->dispatch(LifecycleEvent::BeforeShutdown, $this);
             $this->modules->shutdownAll($this);
+            $this->capabilities->shutdownAll($this);
             $this->state = ApplicationState::Terminated;
             $this->lifecycle->dispatch(LifecycleEvent::AfterShutdown, $this);
         } catch (Throwable $exception) {
@@ -100,6 +105,11 @@ final class Application implements KernelInterface
     public function modules(): ModuleRegistry
     {
         return $this->modules;
+    }
+
+    public function capabilities(): CapabilityRegistry
+    {
+        return $this->capabilities;
     }
 
     public function lifecycle(): LifecycleInterface

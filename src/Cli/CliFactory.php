@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Nexus\Cli;
 
+use Nexus\Capability\CapabilityCatalog;
+use Nexus\Capability\CapabilityInstaller;
+use Nexus\Capability\CapabilityResolver;
+use Nexus\Capability\ComposerPackageManager;
+use Nexus\Capability\PackageManagerInterface;
 use Nexus\Cli\Command\AboutCommand;
 use Nexus\Cli\Command\AddCommand;
 use Nexus\Cli\Command\DoctorCommand;
@@ -19,6 +24,8 @@ final class CliFactory
         ?PrompterInterface $prompter = null,
         ?ProcessRunnerInterface $runner = null,
         ?string $workingDirectory = null,
+        ?CapabilityCatalog $capabilityCatalog = null,
+        ?PackageManagerInterface $packageManager = null,
     ): ConsoleApplication {
         $output ??= new ConsoleOutput();
         $prompter ??= new ConsolePrompter($output);
@@ -27,17 +34,25 @@ final class CliFactory
         $filesystem = new Filesystem();
         $generator = new CodeGenerator($filesystem);
         $manifest = new CapabilityManifest($workingDirectory);
+        $capabilityCatalog ??= CapabilityCatalog::official();
+        $packageManager ??= new ComposerPackageManager($runner, $workingDirectory);
+        $installer = new CapabilityInstaller(
+            $capabilityCatalog,
+            new CapabilityResolver($capabilityCatalog),
+            $manifest,
+            $packageManager,
+        );
         $commands = new CommandRegistry();
 
         $commands
             ->add(new AboutCommand())
-            ->add(new AddCommand($manifest))
+            ->add(new AddCommand($installer))
             ->add(new DoctorCommand($workingDirectory))
             ->add(new MakeCommand(GeneratorType::Controller, $generator, $workingDirectory))
             ->add(new MakeCommand(GeneratorType::Model, $generator, $workingDirectory))
             ->add(new MakeCommand(GeneratorType::Module, $generator, $workingDirectory))
             ->add(new NewCommand(new ProjectGenerator($filesystem), $prompter, $workingDirectory))
-            ->add(new RemoveCommand($manifest))
+            ->add(new RemoveCommand($installer))
             ->add(new ServeCommand($runner, $workingDirectory));
 
         return new ConsoleApplication($commands, $output);

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nexus\Cli\Command;
 
-use Nexus\Cli\CapabilityManifest;
+use Nexus\Capability\CapabilityInstaller;
 use Nexus\Cli\CommandInterface;
 use Nexus\Cli\ExitCode;
 use Nexus\Cli\Input;
@@ -13,7 +13,7 @@ use Nexus\Exception\InvalidInputException;
 
 final readonly class AddCommand implements CommandInterface
 {
-    public function __construct(private CapabilityManifest $manifest)
+    public function __construct(private CapabilityInstaller $installer)
     {
     }
 
@@ -24,7 +24,7 @@ final readonly class AddCommand implements CommandInterface
 
     public function description(): string
     {
-        return 'Add a capability to the project manifest.';
+        return 'Install a capability and its dependencies.';
     }
 
     public function usage(): string
@@ -36,10 +36,18 @@ final readonly class AddCommand implements CommandInterface
     {
         $capability = $input->argument(0)
             ?? throw new InvalidInputException('A capability name is required.');
-        $added = $this->manifest->add($capability);
-        $output->writeln($added
-            ? sprintf('Added capability: %s', strtolower($capability))
-            : sprintf('Capability already present: %s', strtolower($capability)));
+        $capability = strtolower(trim($capability));
+        $added = $this->installer->install($capability);
+
+        if ($added === []) {
+            $output->writeln(sprintf('Capability already installed: %s', $capability));
+
+            return ExitCode::Success;
+        }
+
+        foreach ($added as $name) {
+            $output->writeln(sprintf('Installed capability: %s', $name));
+        }
 
         return ExitCode::Success;
     }

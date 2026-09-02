@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nexus\Cli\Command;
 
-use Nexus\Cli\CapabilityManifest;
+use Nexus\Capability\CapabilityInstaller;
 use Nexus\Cli\CommandInterface;
 use Nexus\Cli\ExitCode;
 use Nexus\Cli\Input;
@@ -13,7 +13,7 @@ use Nexus\Exception\InvalidInputException;
 
 final readonly class RemoveCommand implements CommandInterface
 {
-    public function __construct(private CapabilityManifest $manifest)
+    public function __construct(private CapabilityInstaller $installer)
     {
     }
 
@@ -24,7 +24,7 @@ final readonly class RemoveCommand implements CommandInterface
 
     public function description(): string
     {
-        return 'Remove a capability from the project manifest.';
+        return 'Remove an installed capability safely.';
     }
 
     public function usage(): string
@@ -36,10 +36,11 @@ final readonly class RemoveCommand implements CommandInterface
     {
         $capability = $input->argument(0)
             ?? throw new InvalidInputException('A capability name is required.');
-        $removed = $this->manifest->remove($capability);
+        $capability = strtolower(trim($capability));
+        $removed = $this->installer->remove($capability);
         $output->writeln($removed
-            ? sprintf('Removed capability: %s', strtolower($capability))
-            : sprintf('Capability is not installed: %s', strtolower($capability)));
+            ? sprintf('Removed capability: %s', $capability)
+            : sprintf('Capability is not installed: %s', $capability));
 
         return $removed ? ExitCode::Success : ExitCode::Failure;
     }
