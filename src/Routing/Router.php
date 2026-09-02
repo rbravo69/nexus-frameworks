@@ -21,18 +21,18 @@ final class Router
 
     /**
      * @param string|list<string> $methods
-     * @param callable(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} $handler
+     * @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler
      * @param list<class-string<MiddlewareInterface>> $middleware
      */
     public function add(
         string|array $methods,
         string $path,
-        callable|array $handler,
+        mixed $handler,
         array $middleware = [],
         ?string $name = null,
     ): Route {
         $methodList = is_string($methods) ? [$methods] : $methods;
-        $normalizedHandler = is_array($handler) ? $handler : Closure::fromCallable($handler);
+        $normalizedHandler = $this->normalizeHandler($handler);
         $prefix = '';
         $groupMiddleware = [];
 
@@ -54,32 +54,32 @@ final class Router
         return $route;
     }
 
-    /** @param callable(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} $handler */
-    public function get(string $path, callable|array $handler): Route
+    /** @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler */
+    public function get(string $path, mixed $handler): Route
     {
         return $this->add('GET', $path, $handler);
     }
 
-    /** @param callable(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} $handler */
-    public function post(string $path, callable|array $handler): Route
+    /** @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler */
+    public function post(string $path, mixed $handler): Route
     {
         return $this->add('POST', $path, $handler);
     }
 
-    /** @param callable(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} $handler */
-    public function put(string $path, callable|array $handler): Route
+    /** @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler */
+    public function put(string $path, mixed $handler): Route
     {
         return $this->add('PUT', $path, $handler);
     }
 
-    /** @param callable(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} $handler */
-    public function patch(string $path, callable|array $handler): Route
+    /** @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler */
+    public function patch(string $path, mixed $handler): Route
     {
         return $this->add('PATCH', $path, $handler);
     }
 
-    /** @param callable(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} $handler */
-    public function delete(string $path, callable|array $handler): Route
+    /** @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler */
+    public function delete(string $path, mixed $handler): Route
     {
         return $this->add('DELETE', $path, $handler);
     }
@@ -134,6 +134,19 @@ final class Router
     public function routes(): array
     {
         return $this->routes;
+    }
+
+    /**
+     * @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler
+     * @return Closure(Request, array<string, string>): Response|array{class-string<object>, non-empty-string}
+     */
+    private function normalizeHandler(mixed $handler): Closure|array
+    {
+        if (is_array($handler)) {
+            return $handler;
+        }
+
+        return Closure::fromCallable($handler);
     }
 
     private function normalizePath(string $path): string

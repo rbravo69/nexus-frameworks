@@ -29,8 +29,8 @@ final class AttributeRouteLoaderTest extends TestCase
 
 final class HealthController
 {
-    #[Route('/health', methods: ['GET'], name: 'health')]
     /** @param array<string, string> $parameters */
+    #[Route('/health', methods: ['GET'], name: 'health')]
     public function __invoke(Request $request, array $parameters): Response
     {
         return Response::text('ok');

@@ -96,17 +96,7 @@ final class HttpKernel implements RequestHandlerInterface
         $resolved = [];
 
         foreach ($match->route->middleware() as $middleware) {
-            $instance = $this->container->make($middleware);
-
-            if (!$instance instanceof MiddlewareInterface) {
-                throw new \UnexpectedValueException(sprintf(
-                    'Middleware "%s" must implement %s.',
-                    $middleware,
-                    MiddlewareInterface::class,
-                ));
-            }
-
-            $resolved[] = $instance;
+            $resolved[] = $this->container->make($middleware);
         }
 
         return $resolved;
