@@ -10,7 +10,7 @@
 - HTTP and routing ✅
 - REST, validation and OpenAPI ✅
 - Database core, PostgreSQL, MySQL and SQLite ✅
-- Optional Eloquent integration
+- Optional Eloquent integration ✅
 - Migrations, Code First and basic Database First
 - Cache, optional Redis, CQRS and events
 - Seeders, factories and fake data
