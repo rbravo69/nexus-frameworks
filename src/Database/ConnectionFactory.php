@@ -43,20 +43,11 @@ final class ConnectionFactory
     /** @return array<int, mixed> */
     private function pdoOptions(DatabaseConfig $config): array
     {
-        $options = [
+        return [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
+            ...$config->options,
         ];
-
-        foreach ($config->options as $key => $value) {
-            if (!is_int($key)) {
-                throw new \InvalidArgumentException('PDO option keys must be integer PDO attribute constants.');
-            }
-
-            $options[$key] = $value;
-        }
-
-        return $options;
     }
 }
