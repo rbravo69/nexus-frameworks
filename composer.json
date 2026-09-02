@@ -44,7 +44,9 @@
     ],
     "scripts": {
         "test": "phpunit",
+        "test:architecture": "phpunit tests/Architecture",
         "analyse": "phpstan analyse --no-progress",
+        "benchmark": "php bin/nexus benchmark --iterations=5000 --warmup=200",
         "quality": [
             "@test",
             "@analyse"

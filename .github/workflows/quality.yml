@@ -33,3 +33,6 @@ jobs:
 
       - name: Run quality suite
         run: composer quality
+
+      - name: Benchmark smoke test
+        run: php bin/nexus benchmark --iterations=20 --warmup=2
