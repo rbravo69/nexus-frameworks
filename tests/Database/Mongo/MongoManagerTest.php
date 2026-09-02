@@ -85,12 +85,18 @@ final class InMemoryMongoConnection implements MongoConnectionInterface
         unset($collection, $unique);
         $parts = [];
         foreach ($keys as $field => $direction) {
-            $parts[] = $field . '_' . (string) $direction;
+            if (!is_int($direction) && !is_string($direction)) {
+                throw new \InvalidArgumentException('Index direction must be scalar.');
+            }
+            $parts[] = $field . '_' . $direction;
         }
         return implode('_', $parts);
     }
 
-    /** @param array<string, mixed> $document @param array<string, mixed> $filter */
+    /**
+     * @param array<string, mixed> $document
+     * @param array<string, mixed> $filter
+     */
     private static function matches(array $document, array $filter): bool
     {
         foreach ($filter as $key => $value) {
