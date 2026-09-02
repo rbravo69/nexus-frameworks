@@ -23,14 +23,9 @@ final class PdoConnection implements ConnectionInterface
      */
     public function select(string $sql, array $parameters = []): array
     {
-        $statement = $this->prepareAndExecute($sql, $parameters);
-        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-        if (!is_array($rows)) {
-            return [];
-        }
-
         /** @var list<array<string, mixed>> $rows */
+        $rows = $this->prepareAndExecute($sql, $parameters)->fetchAll(PDO::FETCH_ASSOC);
+
         return $rows;
     }
 
@@ -94,9 +89,7 @@ final class PdoConnection implements ConnectionInterface
         return $this->driverName;
     }
 
-    /**
-     * @param array<string|int, mixed> $parameters
-     */
+    /** @param array<string|int, mixed> $parameters */
     private function prepareAndExecute(string $sql, array $parameters): PDOStatement
     {
         try {
