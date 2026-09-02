@@ -143,19 +143,13 @@ final class Router
     private function normalizeHandler(mixed $handler): Closure|array
     {
         if (is_array($handler)) {
-            $class = $handler[0] ?? null;
-            $method = $handler[1] ?? null;
+            [$class, $method] = $handler;
 
-            if (!is_string($class) || !class_exists($class)) {
-                throw new \InvalidArgumentException('Controller handlers must use an existing class-string.');
-            }
-
-            if (!is_string($method) || $method === '') {
-                throw new \InvalidArgumentException('Controller handlers must define a non-empty method name.');
+            if (is_object($class)) {
+                throw new \InvalidArgumentException('Controller handlers must use a class-string, not an object instance.');
             }
 
             /** @var class-string<object> $class */
-            /** @var non-empty-string $method */
             return [$class, $method];
         }
 
