@@ -27,18 +27,21 @@ final class SchemaIntrospector
         $tables = $connection->select("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
 
         foreach ($tables as $row) {
-            $name = (string) $row['name'];
+            $name = $this->stringValue($row['name'] ?? null, 'name');
             $table = new Table($name);
             $columns = $connection->select(sprintf('PRAGMA table_info("%s")', str_replace('"', '""', $name)));
 
             foreach ($columns as $column) {
-                $type = strtolower((string) ($column['type'] ?? 'text'));
+                $type = strtolower($this->stringValue($column['type'] ?? 'text', 'type'));
+                $notNull = $this->intValue($column['notnull'] ?? 0, 'notnull');
+                $primary = $this->intValue($column['pk'] ?? 0, 'pk') === 1;
+
                 $table->column(new Column(
-                    name: (string) $column['name'],
+                    name: $this->stringValue($column['name'] ?? null, 'name'),
                     type: $this->normalizeType($type),
-                    nullable: ((int) ($column['notnull'] ?? 0)) === 0,
-                    primary: ((int) ($column['pk'] ?? 0)) === 1,
-                    autoIncrement: ((int) ($column['pk'] ?? 0)) === 1 && str_contains($type, 'int'),
+                    nullable: $notNull === 0,
+                    primary: $primary,
+                    autoIncrement: $primary && str_contains($type, 'int'),
                     default: $column['dflt_value'] ?? null,
                 ));
             }
@@ -70,12 +73,12 @@ final class SchemaIntrospector
         $tables = [];
 
         foreach ($rows as $row) {
-            $tableName = (string) $row['table_name'];
+            $tableName = $this->stringValue($row['table_name'] ?? null, 'table_name');
             $tables[$tableName] ??= new Table($tableName);
             $tables[$tableName]->column(new Column(
-                name: (string) $row['column_name'],
-                type: $this->normalizeType((string) $row['data_type']),
-                nullable: strtoupper((string) $row['is_nullable']) === 'YES',
+                name: $this->stringValue($row['column_name'] ?? null, 'column_name'),
+                type: $this->normalizeType($this->stringValue($row['data_type'] ?? null, 'data_type')),
+                nullable: strtoupper($this->stringValue($row['is_nullable'] ?? null, 'is_nullable')) === 'YES',
                 default: $row['column_default'] ?? null,
             ));
         }
@@ -89,6 +92,8 @@ final class SchemaIntrospector
 
     private function normalizeType(string $type): string
     {
+        $type = strtolower($type);
+
         return match (true) {
             str_contains($type, 'bigint') => 'bigint',
             str_contains($type, 'int') => 'integer',
@@ -100,7 +105,25 @@ final class SchemaIntrospector
             str_contains($type, 'time') => 'datetime',
             str_contains($type, 'real'), str_contains($type, 'double'), str_contains($type, 'float') => 'double',
             str_contains($type, 'decimal'), str_contains($type, 'numeric') => 'decimal',
-            default => strtolower($type),
+            default => $type,
         };
+    }
+
+    private function stringValue(mixed $value, string $field): string
+    {
+        if (!is_string($value) && !is_int($value) && !is_float($value)) {
+            throw new \UnexpectedValueException(sprintf('Database field "%s" must be scalar.', $field));
+        }
+
+        return (string) $value;
+    }
+
+    private function intValue(mixed $value, string $field): int
+    {
+        if (!is_int($value) && !is_string($value) && !is_float($value)) {
+            throw new \UnexpectedValueException(sprintf('Database field "%s" must be numeric.', $field));
+        }
+
+        return (int) $value;
     }
 }
