@@ -161,4 +161,34 @@ final class CliFactoryTest extends TestCase
         self::assertSame(['nexus/database'], $packages->removed);
         self::assertStringContainsString('Removed capability: database', $output->content());
     }
+
+    public function testMakeModuleAcceptsAnIndependentArchitectureAndDependencies(): void
+    {
+        $this->temporaryDirectory = new TemporaryDirectory();
+        $cli = (new CliFactory())->create(
+            output: new BufferedOutput(),
+            workingDirectory: $this->temporaryDirectory->path(),
+        );
+
+        $exitCode = $cli->run([
+            'nexus',
+            'make:module',
+            'Booking',
+            '--architecture=ddd',
+            '--depends=identity,catalog',
+        ]);
+
+        self::assertSame(ExitCode::Success, $exitCode);
+        self::assertFileExists($this->temporaryDirectory->path('src/Booking/BookingModule.php'));
+        self::assertFileExists($this->temporaryDirectory->path('src/Booking/Domain/BookingAggregate.php'));
+
+        $manifest = json_decode(
+            (string) file_get_contents($this->temporaryDirectory->path('src/Booking/module.json')),
+            true,
+            flags: JSON_THROW_ON_ERROR,
+        );
+        self::assertIsArray($manifest);
+        self::assertSame('ddd', $manifest['architecture'] ?? null);
+        self::assertSame(['catalog', 'identity'], $manifest['dependencies'] ?? null);
+    }
 }

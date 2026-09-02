@@ -29,5 +29,10 @@
   package operations restore the manifest and best-effort rollback packages.
 - Capability providers register and boot before application modules; shutdown
   reverses that relationship so modules can release capability-backed services.
+- Architecture is selected per module, never imposed application-wide.
+- Module dependencies use stable module names and are validated as a directed
+  acyclic graph before lifecycle execution begins.
+- Preset generators create only files with purpose; Nexus never creates empty
+  directories as architectural decoration.
 
 This file records durable decisions. Significant amendments require an RFC.

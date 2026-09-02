@@ -112,13 +112,24 @@ declare(strict_types=1);
 namespace App;
 
 use Nexus\Application;
-use Nexus\Contracts\ModuleInterface;
+use Nexus\Contracts\ArchitecturalModuleInterface;
+use Nexus\Module\ModuleArchitecture;
 
-final class AppModule implements ModuleInterface
+final class AppModule implements ArchitecturalModuleInterface
 {
     public function name(): string
     {
         return '{{ module }}';
+    }
+
+    public function architecture(): ModuleArchitecture
+    {
+        return ModuleArchitecture::Minimal;
+    }
+
+    public function dependencies(): array
+    {
+        return [];
     }
 
     public function register(Application $application): void

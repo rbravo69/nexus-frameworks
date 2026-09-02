@@ -22,16 +22,21 @@ A module may start with a single class and evolve internally toward layers,
 Hexagonal Architecture, DDD or CQRS. Nexus does not force every module in an
 application to use the same degree of ceremony.
 
+Module architecture is metadata, not a global application mode. Minimal, MVC,
+Layered, Modular, Hexagonal, Clean, DDD, CQRS and Custom modules can coexist.
+Dependencies are declared by stable module names and resolved topologically.
+Unknown dependencies and cycles fail before any module registration runs.
+
 ## Lifecycle
 
 Application startup is deterministic:
 
 1. `before_boot`
 2. register selected capabilities in dependency order
-3. register every module
+3. register every module in dependency order
 4. `after_register`
 5. boot selected capabilities in dependency order
-6. boot every module
+6. boot every module in dependency order
 7. `after_boot`
 
 Shutdown runs modules first and capabilities afterward; each group uses reverse

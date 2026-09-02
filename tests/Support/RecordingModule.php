@@ -5,19 +5,26 @@ declare(strict_types=1);
 namespace Nexus\Tests\Support;
 
 use Nexus\Application;
-use Nexus\Contracts\ModuleInterface;
+use Nexus\Contracts\DependentModuleInterface;
 
-final class RecordingModule implements ModuleInterface
+final class RecordingModule implements DependentModuleInterface
 {
+    /** @param list<string> $dependencies */
     public function __construct(
         private readonly string $moduleName,
         private readonly EventLog $events,
+        private readonly array $dependencies = [],
     ) {
     }
 
     public function name(): string
     {
         return $this->moduleName;
+    }
+
+    public function dependencies(): array
+    {
+        return $this->dependencies;
     }
 
     public function register(Application $application): void
