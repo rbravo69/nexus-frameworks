@@ -7,8 +7,10 @@ namespace Nexus\Http;
 use Nexus\Contracts\ContainerInterface;
 use Nexus\Exception\MethodNotAllowedException;
 use Nexus\Exception\RouteNotFoundException;
+use Nexus\Rest\ApiResponse;
 use Nexus\Routing\RouteMatch;
 use Nexus\Routing\Router;
+use Nexus\Validation\ValidationException;
 use Throwable;
 
 final class HttpKernel implements RequestHandlerInterface
@@ -50,6 +52,8 @@ final class HttpKernel implements RequestHandlerInterface
                 405,
                 ['allow' => implode(', ', $exception->allowedMethods())],
             );
+        } catch (ValidationException $exception) {
+            return ApiResponse::problem($exception->problem($request->path()));
         } catch (Throwable $exception) {
             return Response::json(
                 [
