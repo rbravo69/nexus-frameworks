@@ -11,11 +11,13 @@ use Nexus\Capability\ComposerPackageManager;
 use Nexus\Capability\PackageManagerInterface;
 use Nexus\Cli\Command\AboutCommand;
 use Nexus\Cli\Command\AddCommand;
+use Nexus\Cli\Command\DockerCommand;
 use Nexus\Cli\Command\DoctorCommand;
 use Nexus\Cli\Command\MakeCommand;
 use Nexus\Cli\Command\NewCommand;
 use Nexus\Cli\Command\RemoveCommand;
 use Nexus\Cli\Command\ServeCommand;
+use Nexus\Docker\DockerComposeGenerator;
 
 final class CliFactory
 {
@@ -43,6 +45,7 @@ final class CliFactory
             $packageManager,
         );
         $commands = new CommandRegistry();
+        $dockerGenerator = new DockerComposeGenerator();
 
         $commands
             ->add(new AboutCommand())
@@ -54,6 +57,10 @@ final class CliFactory
             ->add(new NewCommand(new ProjectGenerator($filesystem), $prompter, $workingDirectory))
             ->add(new RemoveCommand($installer))
             ->add(new ServeCommand($runner, $workingDirectory));
+
+        foreach (['init', 'up', 'down', 'restart', 'status', 'logs'] as $action) {
+            $commands->add(new DockerCommand($action, $workingDirectory, $runner, $dockerGenerator));
+        }
 
         return new ConsoleApplication($commands, $output);
     }
