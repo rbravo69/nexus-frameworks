@@ -43,7 +43,7 @@ final readonly class ConsoleApplication
             return ExitCode::Invalid;
         }
 
-        $input = new Input(array_values(array_slice($argv, 2)));
+        $input = new Input(array_slice($argv, 2));
 
         if ($input->hasOption('help')) {
             $this->renderHelp($command);

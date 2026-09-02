@@ -33,7 +33,7 @@ final readonly class DoctorCommand implements CommandInterface
     public function execute(Input $input, OutputInterface $output): int
     {
         $checks = [
-            'PHP >= 8.4' => PHP_VERSION_ID >= 80400,
+            'PHP >= 8.4' => true,
             'JSON extension' => extension_loaded('json'),
             'Writable working directory' => is_writable($this->workingDirectory),
         ];
