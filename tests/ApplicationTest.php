@@ -7,6 +7,7 @@ namespace Nexus\Tests;
 use Nexus\ApplicationState;
 use Nexus\Bootstrap;
 use Nexus\Lifecycle\LifecycleEvent;
+use Nexus\Tests\Support\EventLog;
 use Nexus\Tests\Support\RecordingModule;
 use PHPUnit\Framework\TestCase;
 
@@ -31,14 +32,14 @@ final class ApplicationTest extends TestCase
 
     public function testLifecycleAndModulesRunInDeterministicOrder(): void
     {
-        $events = [];
+        $events = new EventLog();
         $application = Bootstrap::create(__DIR__);
 
         foreach (LifecycleEvent::cases() as $event) {
             $application->lifecycle()->listen(
                 $event,
-                static function () use (&$events, $event): void {
-                    $events[] = $event->value;
+                static function () use ($events, $event): void {
+                    $events->add($event->value);
                 },
             );
         }
@@ -62,7 +63,7 @@ final class ApplicationTest extends TestCase
             'second:shutdown',
             'first:shutdown',
             'after_shutdown',
-        ], $events);
+        ], $events->all());
     }
 
     public function testBootIsIdempotent(): void

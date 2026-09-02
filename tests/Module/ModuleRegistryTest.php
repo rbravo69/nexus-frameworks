@@ -6,6 +6,7 @@ namespace Nexus\Tests\Module;
 
 use Nexus\Bootstrap;
 use Nexus\Exception\DuplicateModuleException;
+use Nexus\Tests\Support\EventLog;
 use Nexus\Tests\Support\RecordingModule;
 use PHPUnit\Framework\TestCase;
 
@@ -13,7 +14,7 @@ final class ModuleRegistryTest extends TestCase
 {
     public function testItRejectsDuplicateModuleNames(): void
     {
-        $events = [];
+        $events = new EventLog();
         $application = Bootstrap::create(__DIR__);
 
         $application->modules()->add(new RecordingModule('catalog', $events));
@@ -25,7 +26,7 @@ final class ModuleRegistryTest extends TestCase
 
     public function testRegistryLocksWhenApplicationRegistrationStarts(): void
     {
-        $events = [];
+        $events = new EventLog();
         $application = Bootstrap::create(__DIR__);
         $application->boot();
 

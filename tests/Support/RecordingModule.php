@@ -9,15 +9,10 @@ use Nexus\Contracts\ModuleInterface;
 
 final class RecordingModule implements ModuleInterface
 {
-    /** @var list<string> */
-    private array $events;
-
-    /** @param list<string> $events */
     public function __construct(
         private readonly string $moduleName,
-        array &$events,
+        private readonly EventLog $events,
     ) {
-        $this->events = &$events;
     }
 
     public function name(): string
@@ -27,16 +22,16 @@ final class RecordingModule implements ModuleInterface
 
     public function register(Application $application): void
     {
-        $this->events[] = $this->moduleName . ':register';
+        $this->events->add($this->moduleName . ':register');
     }
 
     public function boot(Application $application): void
     {
-        $this->events[] = $this->moduleName . ':boot';
+        $this->events->add($this->moduleName . ':boot');
     }
 
     public function shutdown(Application $application): void
     {
-        $this->events[] = $this->moduleName . ':shutdown';
+        $this->events->add($this->moduleName . ':shutdown');
     }
 }
