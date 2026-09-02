@@ -52,18 +52,19 @@ final class CodeGeneratorTest extends TestCase
 
     public function testEveryModuleArchitectureCreatesOnlyDirectoriesWithRealFiles(): void
     {
-        $this->temporaryDirectory = new TemporaryDirectory();
+        $temporaryDirectory = new TemporaryDirectory();
+        $this->temporaryDirectory = $temporaryDirectory;
         $generator = new CodeGenerator(new Filesystem());
 
         foreach (ModuleArchitecture::cases() as $architecture) {
             $name = 'Sales' . $architecture->name;
             $generator->module(
                 $name,
-                $this->temporaryDirectory->path(),
+                $temporaryDirectory->path(),
                 $architecture,
                 ['identity'],
             );
-            $root = $this->temporaryDirectory->path('src/' . $name);
+            $root = $temporaryDirectory->path('src/' . $name);
             $manifest = json_decode(
                 (string) file_get_contents($root . '/module.json'),
                 true,
