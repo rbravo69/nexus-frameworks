@@ -50,6 +50,17 @@ final readonly class EloquentConfig
                 'prefix' => '',
                 'strict' => true,
             ],
+            'sqlsrv' => [
+                'driver' => 'sqlsrv',
+                'host' => $this->database->host ?? '127.0.0.1',
+                'port' => $this->database->port ?? 1433,
+                'database' => $this->database->database,
+                'username' => $this->database->username ?? '',
+                'password' => $this->database->password ?? '',
+                'charset' => $this->database->charset ?? 'utf8',
+                'prefix' => '',
+            ],
+            'oci' => throw new \LogicException('Oracle is supported by Nexus Database Core, but Illuminate Database has no native Oracle driver. Use SQL/PDO or an explicit Oracle Eloquent adapter.'),
         };
     }
 }
