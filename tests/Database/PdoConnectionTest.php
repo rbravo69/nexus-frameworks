@@ -6,8 +6,8 @@ namespace Nexus\Tests\Database;
 
 use Nexus\Database\ConnectionFactory;
 use Nexus\Database\DatabaseConfig;
-use RuntimeException;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class PdoConnectionTest extends TestCase
 {
@@ -44,17 +44,19 @@ final class PdoConnectionTest extends TestCase
     {
         $connection = (new ConnectionFactory())->make(new DatabaseConfig('sqlite', ':memory:'));
         $connection->statement('CREATE TABLE entries (id INTEGER PRIMARY KEY, value TEXT NOT NULL)');
+        $caught = null;
 
         try {
             $connection->transaction(function ($db): void {
                 $db->statement('INSERT INTO entries (value) VALUES (?)', ['rollback']);
                 throw new RuntimeException('stop');
             });
-            self::fail('Expected transaction callback to fail.');
         } catch (RuntimeException $exception) {
-            self::assertSame('stop', $exception->getMessage());
+            $caught = $exception;
         }
 
+        self::assertInstanceOf(RuntimeException::class, $caught);
+        self::assertSame('stop', $caught->getMessage());
         self::assertSame([], $connection->select('SELECT * FROM entries'));
     }
 }
