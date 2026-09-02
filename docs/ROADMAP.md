@@ -19,7 +19,7 @@
 - Cache core and optional Redis ✅
 - CQRS and events ✅
 - Seeders, factories and fake data ✅
-- Optional Docker integration
+- Optional Docker integration ✅
 - Testing, static analysis and benchmarks
 
 ## After v0.1
