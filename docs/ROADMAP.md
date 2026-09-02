@@ -10,13 +10,14 @@
 - HTTP and routing ✅
 - REST, validation and OpenAPI ✅
 - Database core, PostgreSQL, MySQL and SQLite ✅
-- SQL Server and Oracle relational database support
-- Optional MongoDB document persistence
+- SQL Server and Oracle relational database support ✅
+- Optional MongoDB document persistence ✅
 - Optional Eloquent integration ✅
 - Migrations, Code First and basic Database First ✅
-- Extend Schema, migrations and Database First to SQL Server and Oracle
-- MongoDB collections, document repositories, indexes and basic Database First
-- Cache, optional Redis, CQRS and events
+- Extend Schema, migrations and Database First to SQL Server and Oracle ✅
+- MongoDB collections, document repositories, indexes and basic Database First ✅
+- Cache core and optional Redis ✅
+- CQRS and events
 - Seeders, factories and fake data
 - Optional Docker integration
 - Testing, static analysis and benchmarks
