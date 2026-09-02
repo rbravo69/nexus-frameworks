@@ -115,6 +115,11 @@ final class Container implements ContainerInterface
         return $this->resolve($id, fn (): object => $this->autowire($id));
     }
 
+    /**
+     * @template T of object
+     * @param class-string<T> $id
+     * @return T
+     */
     public function make(string $id): object
     {
         $service = $this->get($id);
@@ -126,6 +131,7 @@ final class Container implements ContainerInterface
             ));
         }
 
+        /** @var T $service */
         return $service;
     }
 
@@ -301,6 +307,7 @@ final class Container implements ContainerInterface
         }
 
         try {
+            /** @var class-string $id */
             return (new ReflectionClass($id))->isInstantiable();
         } catch (ReflectionException) {
             return false;

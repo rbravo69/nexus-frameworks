@@ -32,6 +32,9 @@ final class Lazy
             $this->resolved = true;
         }
 
-        return $this->value;
+        /** @var T $value */
+        $value = $this->value;
+
+        return $value;
     }
 }
