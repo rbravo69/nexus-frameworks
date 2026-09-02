@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexus;
 
 use Nexus\Contracts\ConfigurationInterface;
+use Nexus\Contracts\ContainerInterface;
 use Nexus\Contracts\KernelInterface;
 use Nexus\Contracts\LifecycleInterface;
 use Nexus\Exception\ApplicationStateException;
@@ -21,6 +22,7 @@ final class Application implements KernelInterface
         private readonly ConfigurationInterface $configuration,
         private readonly ModuleRegistry $modules,
         private readonly LifecycleInterface $lifecycle,
+        private readonly ContainerInterface $container,
     ) {
     }
 
@@ -103,5 +105,10 @@ final class Application implements KernelInterface
     public function lifecycle(): LifecycleInterface
     {
         return $this->lifecycle;
+    }
+
+    public function container(): ContainerInterface
+    {
+        return $this->container;
     }
 }

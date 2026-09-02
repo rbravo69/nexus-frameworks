@@ -6,6 +6,9 @@ namespace Nexus\Tests;
 
 use Nexus\ApplicationState;
 use Nexus\Bootstrap;
+use Nexus\Contracts\ConfigurationInterface;
+use Nexus\Contracts\KernelInterface;
+use Nexus\Environment;
 use Nexus\Lifecycle\LifecycleEvent;
 use Nexus\Tests\Support\EventLog;
 use Nexus\Tests\Support\RecordingModule;
@@ -74,5 +77,15 @@ final class ApplicationTest extends TestCase
         $application->boot();
 
         self::assertSame(ApplicationState::Booted, $application->state());
+    }
+
+    public function testBootstrapRegistersCoreServicesInTheContainer(): void
+    {
+        $application = Bootstrap::create(__DIR__);
+        $container = $application->container();
+
+        self::assertSame($application, $container->get(KernelInterface::class));
+        self::assertSame($application->environment(), $container->get(Environment::class));
+        self::assertSame($application->config(), $container->get(ConfigurationInterface::class));
     }
 }

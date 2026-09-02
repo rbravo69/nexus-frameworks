@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Nexus;
 
+use Nexus\Container\Container;
 use Nexus\Configuration\ConfigurationLoader;
 use Nexus\Contracts\ConfigurationInterface;
+use Nexus\Contracts\ContainerInterface;
+use Nexus\Contracts\KernelInterface;
 use Nexus\Contracts\LifecycleInterface;
 use Nexus\Lifecycle\Lifecycle;
 use Nexus\Module\ModuleRegistry;
@@ -20,6 +23,7 @@ final class Bootstrap
         ?ConfigurationInterface $configuration = null,
         ?ModuleRegistry $modules = null,
         ?LifecycleInterface $lifecycle = null,
+        ?ContainerInterface $container = null,
     ): Application {
         $environment ??= self::environmentVariable('APP_ENV', 'production');
         $debug ??= self::booleanEnvironmentVariable('APP_DEBUG', false);
@@ -29,12 +33,29 @@ final class Bootstrap
             $configPath ?? $runtimeEnvironment->path('config'),
         );
 
-        return new Application(
+        $modules ??= new ModuleRegistry();
+        $lifecycle ??= new Lifecycle();
+        $container ??= new Container();
+
+        $container
+            ->instance(Environment::class, $runtimeEnvironment)
+            ->instance(ConfigurationInterface::class, $configuration)
+            ->instance(ModuleRegistry::class, $modules)
+            ->instance(LifecycleInterface::class, $lifecycle);
+
+        $application = new Application(
             environment: $runtimeEnvironment,
             configuration: $configuration,
-            modules: $modules ?? new ModuleRegistry(),
-            lifecycle: $lifecycle ?? new Lifecycle(),
+            modules: $modules,
+            lifecycle: $lifecycle,
+            container: $container,
         );
+
+        $container
+            ->instance(Application::class, $application)
+            ->instance(KernelInterface::class, $application);
+
+        return $application;
     }
 
     private static function environmentVariable(string $key, string $default): string

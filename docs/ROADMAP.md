@@ -2,8 +2,8 @@
 
 ## v0.1 — Foundation
 
-- Core, lifecycle, configuration and module registry
-- Dependency injection container
+- Core, lifecycle, configuration and module registry ✅
+- Dependency injection container ✅
 - CLI and capability management
 - Modules and architectural presets
 - HTTP, routing, REST, validation and OpenAPI

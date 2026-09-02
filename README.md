@@ -51,6 +51,23 @@ $app->modules()->add(new BookingModule());
 $app->boot();
 ```
 
+Constructor injection and interface bindings are handled by the built-in
+PSR-11 container:
+
+```php
+use Nexus\Container\Scope;
+
+$app->container()
+    ->bind(PaymentGateway::class, StripeGateway::class)
+    ->factory(
+        ExchangeRates::class,
+        fn ($container) => new ExchangeRates($container->get(HttpClient::class)),
+        Scope::Singleton,
+    );
+
+$service = $app->container()->get(CheckoutService::class);
+```
+
 ## Development
 
 ```bash

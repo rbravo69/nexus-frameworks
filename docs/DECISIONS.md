@@ -16,5 +16,8 @@
 - Seeders, factories and fake data belong to the v0.1 database/testing scope.
 - Reporting, pagination and mail are independent of a specific ORM or provider.
 - Complex optimizations require benchmarks that demonstrate their need.
+- The DI container implements PSR-11 and keeps registration explicit.
+- Transient is the default lifetime; contextual scopes must be opened
+  explicitly and always discard their instances when closed.
 
 This file records durable decisions. Significant amendments require an RFC.

@@ -34,3 +34,13 @@ Application startup is deterministic:
 
 Shutdown runs modules in reverse registration order between `before_shutdown`
 and `after_shutdown`.
+
+## Dependency injection
+
+The PSR-11 container supports constructor autowiring, explicit interface
+bindings, factories and four lifetimes: transient, singleton, request and
+worker. Request and worker scopes are explicit boundaries; resolving a scoped
+service outside its active boundary is an error.
+
+Bindings are lazy. A service is built only when requested, and `lazy()` can
+defer even the container lookup until a value is actually consumed.
