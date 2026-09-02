@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nexus\Cli;
 
+use Nexus\Benchmark\BenchmarkRunner;
 use Nexus\Capability\CapabilityCatalog;
 use Nexus\Capability\CapabilityInstaller;
 use Nexus\Capability\CapabilityResolver;
@@ -11,6 +12,7 @@ use Nexus\Capability\ComposerPackageManager;
 use Nexus\Capability\PackageManagerInterface;
 use Nexus\Cli\Command\AboutCommand;
 use Nexus\Cli\Command\AddCommand;
+use Nexus\Cli\Command\BenchmarkCommand;
 use Nexus\Cli\Command\DockerCommand;
 use Nexus\Cli\Command\DoctorCommand;
 use Nexus\Cli\Command\MakeCommand;
@@ -50,6 +52,7 @@ final class CliFactory
         $commands
             ->add(new AboutCommand())
             ->add(new AddCommand($installer))
+            ->add(new BenchmarkCommand(new BenchmarkRunner()))
             ->add(new DoctorCommand($workingDirectory))
             ->add(new MakeCommand(GeneratorType::Controller, $generator, $workingDirectory))
             ->add(new MakeCommand(GeneratorType::Model, $generator, $workingDirectory))
