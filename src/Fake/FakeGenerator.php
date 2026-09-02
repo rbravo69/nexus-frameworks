@@ -42,7 +42,11 @@ final class FakeGenerator
         return $this->integer(1, 100) <= $truePercentage;
     }
 
-    /** @template T @param non-empty-list<T> $values @return T */
+    /**
+     * @template T
+     * @param non-empty-list<T> $values
+     * @return T
+     */
     public function oneOf(array $values): mixed
     {
         return $values[$this->integer(0, count($values) - 1)];
