@@ -20,13 +20,14 @@ final class OpenApiGeneratorTest extends TestCase
         $router->post('/users', static fn (Request $request, array $parameters): Response => Response::json([]));
 
         $document = (new OpenApiGenerator('Example API', '1.2.3'))->generate($router);
+        $operation = $document['paths']['/users/{id}']['get'];
 
         self::assertSame('3.1.0', $document['openapi']);
         self::assertSame('Example API', $document['info']['title']);
-        self::assertSame('Show a user', $document['paths']['/users/{id}']['get']['summary']);
-        self::assertSame('users.show', $document['paths']['/users/{id}']['get']['operationId']);
-        self::assertSame('User found', $document['paths']['/users/{id}']['get']['responses']['200']['description']);
-        self::assertSame('id', $document['paths']['/users/{id}']['get']['parameters'][0]['name']);
+        self::assertSame('Show a user', $operation['summary'] ?? null);
+        self::assertSame('users.show', $operation['operationId'] ?? null);
+        self::assertSame('User found', $operation['responses'][200]['description']);
+        self::assertSame('id', $operation['parameters'][0]['name'] ?? null);
         self::assertArrayHasKey('post', $document['paths']['/users']);
         self::assertArrayHasKey('ProblemDetails', $document['components']['schemas']);
     }
@@ -34,13 +35,13 @@ final class OpenApiGeneratorTest extends TestCase
 
 final class OpenApiUserController
 {
+    /** @param array<string, string> $parameters */
     #[Operation(
         summary: 'Show a user',
         description: 'Returns one user.',
         tags: ['Users'],
         responses: [200 => 'User found', 404 => 'User not found'],
     )]
-    /** @param array<string, string> $parameters */
     public function show(Request $request, array $parameters): Response
     {
         return Response::json(['id' => $parameters['id']]);
