@@ -9,6 +9,24 @@ use Nexus\Routing\Route;
 use Nexus\Routing\Router;
 use ReflectionMethod;
 
+/**
+ * @phpstan-type OpenApiResponse array{description: string}
+ * @phpstan-type OpenApiParameter array{name: string, in: string, required: bool, schema: array{type: string}}
+ * @phpstan-type OpenApiOperation array{
+ *     responses: array<string, OpenApiResponse>,
+ *     operationId?: string,
+ *     summary?: string,
+ *     description?: string,
+ *     tags?: list<string>,
+ *     parameters?: list<OpenApiParameter>
+ * }
+ * @phpstan-type OpenApiDocument array{
+ *     openapi: string,
+ *     info: array{title: string, version: string},
+ *     paths: array<string, array<string, OpenApiOperation>>,
+ *     components: array{schemas: array{ProblemDetails: array<string, mixed>}}
+ * }
+ */
 final class OpenApiGenerator
 {
     public function __construct(
@@ -17,9 +35,10 @@ final class OpenApiGenerator
     ) {
     }
 
-    /** @return array<string, mixed> */
+    /** @return OpenApiDocument */
     public function generate(Router $router): array
     {
+        /** @var array<string, array<string, OpenApiOperation>> $paths */
         $paths = [];
 
         foreach ($router->routes() as $route) {
@@ -53,12 +72,12 @@ final class OpenApiGenerator
         ];
     }
 
-    /** @return array<string, mixed> */
+    /** @return OpenApiOperation */
     private function operationFor(Route $route, string $method): array
     {
         $attribute = $this->operationAttribute($route);
-        $operationId = $attribute?->operationId ?? $route->name();
-        $responses = $attribute?->responses ?? [200 => 'Successful response'];
+        $operationId = $attribute->operationId ?? $route->name();
+        $responses = $attribute->responses ?? [200 => 'Successful response'];
         $document = [
             'responses' => $this->responses($responses),
         ];
@@ -110,7 +129,10 @@ final class OpenApiGenerator
         return $attributes[0]->newInstance();
     }
 
-    /** @param array<int, string> $responses @return array<string, array<string, string>> */
+    /**
+     * @param array<int, string> $responses
+     * @return array<string, OpenApiResponse>
+     */
     private function responses(array $responses): array
     {
         $document = [];
@@ -122,7 +144,7 @@ final class OpenApiGenerator
         return $document;
     }
 
-    /** @return list<array<string, mixed>> */
+    /** @return list<OpenApiParameter> */
     private function pathParameters(string $path): array
     {
         preg_match_all('/\{([A-Za-z_][A-Za-z0-9_]*)\}/', $path, $matches);
