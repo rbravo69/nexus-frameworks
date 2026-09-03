@@ -65,20 +65,23 @@ final class DockerComposeGenerator
             return ['app' => $app];
         }
 
-        return [
-            'app' => $app,
-            'nginx' => [
-                'image: nginx:1.27-alpine',
-                'depends_on:',
-                '  - app',
-                'volumes:',
-                '  - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro',
-                ...(!$config->production ? ['  - .:/app:ro'] : []),
-                'ports:',
-                '  - "8080:80"',
-                ...($config->production ? ['restart: unless-stopped'] : []),
-            ],
+        $nginx = [
+            'build:',
+            '  context: .',
+            '  dockerfile: docker/nginx/Dockerfile',
+            'depends_on:',
+            '  - app',
         ];
+        if (!$config->production) {
+            $nginx[] = 'volumes:';
+            $nginx[] = '  - .:/app:ro';
+        } else {
+            $nginx[] = 'restart: unless-stopped';
+        }
+        $nginx[] = 'ports:';
+        $nginx[] = '  - "8080:80"';
+
+        return ['app' => $app, 'nginx' => $nginx];
     }
 
     /** @return list<string> */
@@ -107,6 +110,7 @@ final class DockerComposeGenerator
             ],
             DockerRuntime::PhpFpmNginx => [
                 'docker/nginx/default.conf' => "server {\n    listen 80;\n    root /app/public;\n    index index.php;\n\n    location / { try_files \\$uri \\$uri/ /index.php?\\$query_string; }\n    location ~ \\.php$ {\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \\$document_root\\$fastcgi_script_name;\n        fastcgi_pass app:9000;\n    }\n}\n",
+                'docker/nginx/Dockerfile' => "FROM nginx:1.27-alpine\nCOPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf\nCOPY public /app/public\n",
             ],
             DockerRuntime::RoadRunner => [
                 'docker/roadrunner/.rr.yaml' => "version: '3'\nserver:\n  command: 'php docker/roadrunner/worker.php'\nhttp:\n  address: 0.0.0.0:8080\n  pool:\n    num_workers: 2\nlogs:\n  mode: production\n",
