@@ -23,7 +23,8 @@
         "friendsofphp/php-cs-fixer": "^3.0",
         "illuminate/database": "^13.0",
         "phpstan/phpstan": "^2.1",
-        "phpunit/phpunit": "^12.0"
+        "phpunit/phpunit": "^12.0",
+        "twig/twig": "^3.0"
     },
     "suggest": {
         "ext-pdo": "Required only when using Nexus relational database support.",
@@ -33,7 +34,8 @@
         "ext-mongodb": "Required when using the official MongoDB adapter.",
         "mongodb/mongodb": "Required when using the official MongoDB adapter.",
         "ext-redis": "Recommended for a native Redis client adapter.",
-        "predis/predis": "Alternative pure-PHP Redis client adapter."
+        "predis/predis": "Alternative pure-PHP Redis client adapter.",
+        "twig/twig": "Required only when using the optional Nexus Twig view renderer."
     },
     "autoload": {
         "psr-4": {

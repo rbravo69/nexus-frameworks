@@ -23,12 +23,16 @@ final class Response
         }
     }
 
-    /**
-     * @param array<string, string> $headers
-     */
+    /** @param array<string, string> $headers */
     public static function text(string $body, int $status = 200, array $headers = []): self
     {
         return new self($status, ['content-type' => 'text/plain; charset=utf-8', ...$headers], $body);
+    }
+
+    /** @param array<string, string> $headers */
+    public static function html(string $body, int $status = 200, array $headers = []): self
+    {
+        return new self($status, ['content-type' => 'text/html; charset=utf-8', ...$headers], $body);
     }
 
     /**
