@@ -6,7 +6,9 @@ namespace Nexus\Tests\Database\Mongo;
 
 use Nexus\Database\Mongo\MongoConfig;
 use Nexus\Database\Mongo\MongoConnectionInterface;
+use Nexus\Database\Mongo\MongoIntrospector;
 use Nexus\Database\Mongo\MongoManager;
+use Nexus\Database\Mongo\MongoRepository;
 use PHPUnit\Framework\TestCase;
 
 final class MongoManagerTest extends TestCase
@@ -23,16 +25,18 @@ final class MongoManagerTest extends TestCase
         self::assertSame($connection, $manager->connection());
     }
 
-    public function testDocumentContractSupportsBasicOperations(): void
+    public function testRepositoryAndIntrospectionUseNeutralConnectionContract(): void
     {
         $connection = new InMemoryMongoConnection();
-        $id = $connection->insert('users', ['name' => 'Rafael']);
+        $repository = new MongoRepository($connection, 'users');
+        $id = $repository->insert(['name' => 'Rafael']);
 
         self::assertSame('1', $id);
-        self::assertSame([['name' => 'Rafael', '_id' => '1']], $connection->find('users'));
-        self::assertSame(1, $connection->update('users', ['_id' => '1'], ['name' => 'Rafa']));
-        self::assertSame(1, $connection->delete('users', ['_id' => '1']));
-        self::assertSame('email_1', $connection->createIndex('users', ['email' => 1], true));
+        self::assertSame([['name' => 'Rafael', '_id' => '1']], $repository->find());
+        self::assertSame(1, $repository->update(['_id' => '1'], ['name' => 'Rafa']));
+        self::assertSame('email_1', $repository->createIndex(['email' => 1], true));
+        self::assertSame(['users' => [['name' => 'email_1', 'key' => ['email' => 1], 'unique' => true]]], (new MongoIntrospector($connection))->inspect());
+        self::assertSame(1, $repository->delete(['_id' => '1']));
     }
 }
 
@@ -40,6 +44,9 @@ final class InMemoryMongoConnection implements MongoConnectionInterface
 {
     /** @var array<string, list<array<string, mixed>>> */
     private array $documents = [];
+
+    /** @var array<string, list<array<string, mixed>>> */
+    private array $indexes = [];
 
     public function insert(string $collection, array $document): string
     {
@@ -82,7 +89,6 @@ final class InMemoryMongoConnection implements MongoConnectionInterface
 
     public function createIndex(string $collection, array $keys, bool $unique = false): string
     {
-        unset($collection, $unique);
         $parts = [];
         foreach ($keys as $field => $direction) {
             if (!is_int($direction) && !is_string($direction)) {
@@ -90,7 +96,21 @@ final class InMemoryMongoConnection implements MongoConnectionInterface
             }
             $parts[] = $field . '_' . $direction;
         }
-        return implode('_', $parts);
+        $name = implode('_', $parts);
+        $this->indexes[$collection][] = ['name' => $name, 'key' => $keys, 'unique' => $unique];
+        return $name;
+    }
+
+    public function collections(): array
+    {
+        $names = array_unique([...array_keys($this->documents), ...array_keys($this->indexes)]);
+        sort($names);
+        return $names;
+    }
+
+    public function indexes(string $collection): array
+    {
+        return $this->indexes[$collection] ?? [];
     }
 
     /**
