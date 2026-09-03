@@ -22,16 +22,20 @@
 - Optional Docker integration ✅
 - Testing, static analysis and benchmarks ✅
 
+Current support boundaries and validation levels are defined in
+[SUPPORT_MATRIX.md](SUPPORT_MATRIX.md). This roadmap describes delivery status
+and future direction; it is not, by itself, a runtime support contract.
+
 ## v0.1 — Release Candidate Hardening
 
 - RC-01 Architectural Hardening ✅
 - RC-02 Package & Capability Model ✅
-- RC-03 Validation, Cache and Redis hardening
+- RC-03 Validation, Cache and Redis hardening ✅
 - RC-04 MongoDB concrete adapter and real persistence ✅
 - RC-05 Relational integration matrix ✅
 - RC-06 Production-ready Docker runtimes ✅
 - RC-07 CI, dependency audit and coding standards ✅
-- RC-08 Documentation and support-claim reconciliation
+- RC-08 Documentation and support-claim reconciliation ✅
 - RC-09 v0.1.0-rc.1
 - RC-10 v0.1.0 release validation
 
