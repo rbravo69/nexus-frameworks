@@ -10,6 +10,7 @@ use Nexus\View\View;
 use Nexus\View\ViewFinder;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\TestCase;
+use SplFileInfo;
 
 final class ViewRuntimeTest extends TestCase
 {
@@ -28,6 +29,7 @@ final class ViewRuntimeTest extends TestCase
         );
 
         foreach ($iterator as $item) {
+            self::assertInstanceOf(SplFileInfo::class, $item);
             $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
         }
 
