@@ -7,6 +7,7 @@ namespace Nexus\Cli;
 use Nexus\Benchmark\BenchmarkRunner;
 use Nexus\Capability\CapabilityCatalog;
 use Nexus\Capability\CapabilityInstaller;
+use Nexus\Capability\CapabilityManifest;
 use Nexus\Capability\CapabilityResolver;
 use Nexus\Capability\ComposerPackageManager;
 use Nexus\Capability\PackageManagerInterface;

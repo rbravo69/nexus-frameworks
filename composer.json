@@ -12,7 +12,6 @@
     ],
     "require": {
         "php": "^8.4",
-        "ext-pdo": "*",
         "psr/container": "^2.0"
     },
     "require-dev": {
@@ -21,6 +20,7 @@
         "phpunit/phpunit": "^12.0"
     },
     "suggest": {
+        "ext-pdo": "Required only when using Nexus relational database support.",
         "illuminate/database": "Required only when using the optional Nexus Eloquent integration.",
         "ext-pdo_sqlsrv": "Required for SQL Server connections through PDO.",
         "ext-pdo_oci": "Required for Oracle connections through PDO.",

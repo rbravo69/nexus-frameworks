@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nexus\Capability;
 
-use Nexus\Cli\CapabilityManifest;
 use Nexus\Contracts\CapabilityInterface;
 use Nexus\Contracts\ContainerInterface;
 use Nexus\Exception\CapabilityLoadException;

@@ -7,18 +7,18 @@ namespace Nexus\Http;
 use Nexus\Contracts\ContainerInterface;
 use Nexus\Exception\MethodNotAllowedException;
 use Nexus\Exception\RouteNotFoundException;
-use Nexus\Rest\ApiResponse;
 use Nexus\Routing\RouteMatch;
 use Nexus\Routing\Router;
-use Nexus\Validation\ValidationException;
 use Throwable;
 
 final class HttpKernel implements RequestHandlerInterface
 {
+    /** @param list<ExceptionRendererInterface> $exceptionRenderers */
     public function __construct(
         private readonly Router $router,
         private readonly ContainerInterface $container,
         private readonly bool $debug = false,
+        private readonly array $exceptionRenderers = [],
     ) {
     }
 
@@ -52,9 +52,13 @@ final class HttpKernel implements RequestHandlerInterface
                 405,
                 ['allow' => implode(', ', $exception->allowedMethods())],
             );
-        } catch (ValidationException $exception) {
-            return ApiResponse::problem($exception->problem($request->path()));
         } catch (Throwable $exception) {
+            foreach ($this->exceptionRenderers as $renderer) {
+                if ($renderer->supports($exception)) {
+                    return $renderer->render($exception, $request);
+                }
+            }
+
             return Response::json(
                 [
                     'error' => 'Internal Server Error',

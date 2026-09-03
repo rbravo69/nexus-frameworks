@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Nexus\Cli;
+namespace Nexus\Capability;
 
 use JsonException;
 use Nexus\Exception\CliException;

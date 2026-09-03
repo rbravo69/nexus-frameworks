@@ -6,9 +6,9 @@ namespace Nexus;
 
 use Nexus\Capability\CapabilityCatalog;
 use Nexus\Capability\CapabilityLoader;
+use Nexus\Capability\CapabilityManifest;
 use Nexus\Capability\CapabilityRegistry;
 use Nexus\Capability\CapabilityResolver;
-use Nexus\Cli\CapabilityManifest;
 use Nexus\Container\Container;
 use Nexus\Configuration\ConfigurationLoader;
 use Nexus\Contracts\ConfigurationInterface;

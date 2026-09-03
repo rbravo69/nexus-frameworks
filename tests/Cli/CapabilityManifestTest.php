@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nexus\Tests\Cli;
 
-use Nexus\Cli\CapabilityManifest;
+use Nexus\Capability\CapabilityManifest;
 use Nexus\Tests\Support\TemporaryDirectory;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\TestCase;

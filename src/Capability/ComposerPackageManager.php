@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nexus\Capability;
 
-use Nexus\Cli\ProcessRunnerInterface;
+use Nexus\Contracts\ProcessRunnerInterface;
 use Nexus\Exception\CapabilityInstallationException;
 
 final readonly class ComposerPackageManager implements PackageManagerInterface
