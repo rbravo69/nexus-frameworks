@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nexus\Database\Mongo;
 
-use ReflectionClass;
 use ReflectionMethod;
 
 final class MongoLibraryConnection implements MongoConnectionInterface
@@ -25,9 +24,7 @@ final class MongoLibraryConnection implements MongoConnectionInterface
             );
         }
 
-        /** @var class-string $clientClass */
-        $reflection = new ReflectionClass($clientClass);
-        $client = $reflection->newInstance($config->uri, $config->options);
+        $client = new $clientClass($config->uri, $config->options);
 
         return new self($client, $config->database);
     }
