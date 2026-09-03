@@ -23,15 +23,19 @@ $config = new DatabaseConfig(
     $database,
     $host,
     $port > 0 ? $port : null,
-    $username !== '' ? $username : null,
-    $password !== '' ? $password : null,
+    $username,
+    $password,
 );
 
 $connection = (new ConnectionFactory())->make($config);
 
 $healthSql = $driver === 'oci' ? 'SELECT 1 AS nexus_health FROM DUAL' : 'SELECT 1 AS nexus_health';
 $health = $connection->select($healthSql);
-if ((int) ($health[0]['nexus_health'] ?? 0) !== 1) {
+$healthValue = $health[0]['nexus_health'] ?? null;
+if (!is_int($healthValue) && !is_float($healthValue) && !is_string($healthValue)) {
+    throw new RuntimeException(sprintf('%s health query returned an invalid value.', $driver));
+}
+if ((int) $healthValue !== 1) {
     throw new RuntimeException(sprintf('%s health query failed.', $driver));
 }
 
