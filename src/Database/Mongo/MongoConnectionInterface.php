@@ -26,4 +26,10 @@ interface MongoConnectionInterface
 
     /** @param array<string, mixed> $keys */
     public function createIndex(string $collection, array $keys, bool $unique = false): string;
+
+    /** @return list<string> */
+    public function collections(): array;
+
+    /** @return list<array<string, mixed>> */
+    public function indexes(string $collection): array;
 }
