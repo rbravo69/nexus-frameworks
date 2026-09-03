@@ -109,7 +109,7 @@ final class DockerComposeGenerator
                 'docker/frankenphp/Caddyfile' => ":8080 {\n    root * /app/public\n    php_server\n    encode zstd gzip\n}\n",
             ],
             DockerRuntime::PhpFpmNginx => [
-                'docker/nginx/default.conf' => "server {\n    listen 80;\n    root /app/public;\n    index index.php;\n\n    location / { try_files \\$uri \\$uri/ /index.php?\\$query_string; }\n    location ~ \\.php$ {\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \\$document_root\\$fastcgi_script_name;\n        fastcgi_pass app:9000;\n    }\n}\n",
+                'docker/nginx/default.conf' => "server {\n    listen 80;\n    root /app/public;\n    index index.php;\n\n    location / { try_files \$uri \$uri/ /index.php?\$query_string; }\n    location ~ \\.php$ {\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_pass app:9000;\n    }\n}\n",
                 'docker/nginx/Dockerfile' => "FROM nginx:1.27-alpine\nCOPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf\nCOPY public /app/public\n",
             ],
             DockerRuntime::RoadRunner => [
@@ -132,7 +132,7 @@ final class DockerComposeGenerator
             DockerRuntime::FrankenPhp => "FROM dunglas/frankenphp:php8.4\nWORKDIR /app\nCOPY --from=composer:2 /usr/bin/composer /usr/bin/composer\nCOPY . /app\n{$install}COPY docker/frankenphp/Caddyfile /etc/caddy/Caddyfile\nEXPOSE 8080\nCMD [\"frankenphp\", \"run\", \"--config\", \"/etc/caddy/Caddyfile\"]\n",
             DockerRuntime::PhpFpmNginx => "FROM php:8.4-fpm-alpine\nWORKDIR /app\nCOPY --from=composer:2 /usr/bin/composer /usr/bin/composer\nCOPY . /app\n{$install}EXPOSE 9000\nCMD [\"php-fpm\", \"-F\"]\n",
             DockerRuntime::RoadRunner => "FROM ghcr.io/roadrunner-server/roadrunner:2025.1.5 AS roadrunner\nFROM php:8.4-cli-alpine\nWORKDIR /app\nCOPY --from=roadrunner /usr/bin/rr /usr/local/bin/rr\nCOPY --from=composer:2 /usr/bin/composer /usr/bin/composer\nCOPY . /app\nRUN composer require spiral/roadrunner-worker:^3.0 spiral/roadrunner-http:^3.0 nyholm/psr7:^1.8 --no-interaction --no-scripts\nEXPOSE 8080\nCMD [\"rr\", \"serve\", \"-c\", \"docker/roadrunner/.rr.yaml\"]\n",
-            DockerRuntime::OpenSwoole => "FROM php:8.4-cli-alpine\nWORKDIR /app\nRUN apk add --no-cache \\$PHPIZE_DEPS linux-headers openssl-dev && pecl install openswoole && docker-php-ext-enable openswoole\nCOPY --from=composer:2 /usr/bin/composer /usr/bin/composer\nCOPY . /app\n{$install}EXPOSE 8080\nCMD [\"php\", \"docker/openswoole/server.php\"]\n",
+            DockerRuntime::OpenSwoole => "FROM php:8.4-cli-alpine\nWORKDIR /app\nRUN apk add --no-cache \$PHPIZE_DEPS linux-headers openssl-dev && pecl install openswoole && docker-php-ext-enable openswoole\nCOPY --from=composer:2 /usr/bin/composer /usr/bin/composer\nCOPY . /app\n{$install}EXPOSE 8080\nCMD [\"php\", \"docker/openswoole/server.php\"]\n",
         };
     }
 
