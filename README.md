@@ -24,7 +24,7 @@ than the long-term roadmap.
 - Install and boot only the capabilities an application uses.
 - Business-oriented modules instead of framework-oriented folders.
 - Infrastructure behind contracts and replaceable adapters.
-- No mandatory HTTP, database, cache or ORM dependency in the core.
+- No mandatory HTTP, database, cache, ORM or Twig dependency in the core.
 - Measured performance and explicit behavior over hidden magic.
 
 ## Requirements
@@ -34,8 +34,8 @@ than the long-term roadmap.
 
 Optional integrations require their own extensions or packages only when used.
 For example, SQL Server uses PDO SQLSRV, Oracle uses PDO OCI, MongoDB uses the
-official `mongodb/mongodb` library plus `ext-mongodb`, and Eloquent uses
-`illuminate/database`.
+official `mongodb/mongodb` library plus `ext-mongodb`, Eloquent uses
+`illuminate/database`, and Twig is installed only when a project selects it.
 
 ## Verified v0.1 foundation
 
@@ -44,6 +44,9 @@ Implemented in the current tree:
 - application lifecycle, configuration, modules and PSR-11 dependency injection;
 - CLI/project generation and manifest-driven optional capabilities;
 - HTTP routing, middleware, REST helpers, validation and OpenAPI generation;
+- renderer-neutral view runtime with PHP Native and optional Twig;
+- global and module-namespaced views through `ViewFinder`;
+- HTML responses through `View::response()` and `Response::html()`;
 - relational Database Core for PostgreSQL, MySQL, SQLite, SQL Server and Oracle;
 - neutral migrations, Code First and basic Database First;
 - optional Eloquent integration;
@@ -106,6 +109,70 @@ $app->container()
 $service = $app->container()->get(CheckoutService::class);
 ```
 
+## Server-rendered views
+
+Traditional and modular monoliths can use PHP Native or Twig for server-side
+rendering. The runtime is renderer-neutral:
+
+```text
+View
+   ↓
+ViewRendererInterface
+   ├── NativePhpRenderer
+   └── TwigRenderer
+```
+
+Register PHP Native:
+
+```php
+use Nexus\View\ViewFactory;
+
+$views = ViewFactory::register(
+    application: $app,
+    renderer: 'php',
+    viewsPath: __DIR__ . '/resources/views',
+);
+```
+
+Or register Twig:
+
+```php
+$views = ViewFactory::register(
+    application: $app,
+    renderer: 'twig',
+    viewsPath: __DIR__ . '/resources/views',
+    cachePath: __DIR__ . '/.nexus/cache/twig',
+    debug: false,
+);
+```
+
+Render a normal HTML response:
+
+```php
+return $views->response('properties/show.twig', [
+    'property' => $property,
+]);
+```
+
+Module-local views can be registered as namespaces:
+
+```php
+$views = ViewFactory::register(
+    application: $app,
+    renderer: 'twig',
+    viewsPath: __DIR__ . '/resources/views',
+    namespaces: [
+        'catalog' => __DIR__ . '/modules/Catalog/Views',
+    ],
+);
+
+return $views->response('catalog::products/card.twig', [
+    'product' => $product,
+]);
+```
+
+See the [views guide](docs/VIEWS.md) for the current runtime contract.
+
 ## Development
 
 ```bash
@@ -167,6 +234,11 @@ configuration and the corresponding source files. Twig is added to Composer
 only when the Twig renderer is selected. The selected stack is recorded in
 `nexus.json` so tooling can inspect it later.
 
+The frontend scaffold and the view runtime are intentionally separate. Selecting
+Twig prepares the project and installs Twig, while the application currently
+registers the view runtime explicitly with `ViewFactory::register()`. This keeps
+pre-1.0 behavior visible and avoids hidden boot-time magic.
+
 Capabilities are Composer packages selected in `nexus.json`. Nexus installs
 their dependencies in order, prevents unsafe removals and loads only the
 selected providers during application bootstrap. See the
@@ -178,9 +250,15 @@ Every module chooses its own level of ceremony. Available presets are
 the runtime detects missing dependencies and cycles before registration. See
 the [modules guide](docs/MODULES.md).
 
-See [the architecture](docs/ARCHITECTURE.md), [verified support matrix](docs/SUPPORT_MATRIX.md),
-[roadmap](docs/ROADMAP.md), and [contribution guide](CONTRIBUTING.md) before
-proposing a change.
+## Documentation
+
+- [Views](docs/VIEWS.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Verified support matrix](docs/SUPPORT_MATRIX.md)
+- [Capabilities](docs/CAPABILITIES.md)
+- [Modules](docs/MODULES.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Contribution guide](CONTRIBUTING.md)
 
 ## License
 
