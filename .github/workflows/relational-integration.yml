@@ -92,6 +92,13 @@ jobs:
           - 1433:1433
     steps:
       - uses: actions/checkout@v5
+      - name: Install Microsoft ODBC Driver 18
+        run: |
+          curl -sSL -O https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          rm packages-microsoft-prod.deb
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
@@ -102,12 +109,12 @@ jobs:
       - name: Wait for SQL Server
         run: |
           LAST_ERROR=""
-          for i in {1..30}; do
+          for i in {1..20}; do
             if OUTPUT=$(php -r 'try { new PDO("sqlsrv:Server=127.0.0.1,1433;Database=master;Encrypt=true;TrustServerCertificate=true", "sa", "Nexus_Rc05_2026!"); exit(0); } catch (Throwable $e) { fwrite(STDERR, $e->getMessage()); exit(1); }' 2>&1); then
               exit 0
             fi
             LAST_ERROR="$OUTPUT"
-            sleep 5
+            sleep 3
           done
           printf 'SQL Server PDO connection failed: %s\n' "$LAST_ERROR" >&2
           exit 1
