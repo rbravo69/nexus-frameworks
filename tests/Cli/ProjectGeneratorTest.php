@@ -43,19 +43,13 @@ final class ProjectGeneratorTest extends TestCase
             self::assertFileExists($target . '/src/AppModule.php');
             self::assertTrue(is_executable($target . '/bin/app'));
 
-            $manifest = json_decode(
-                (string) file_get_contents($target . '/nexus.json'),
-                true,
-                flags: JSON_THROW_ON_ERROR,
-            );
-
-            self::assertIsArray($manifest);
-            $project = $manifest['project'] ?? null;
-            self::assertIsArray($project);
+            $manifest = $this->jsonFile($target . '/nexus.json');
+            $project = $this->arrayValue($manifest, 'project');
             self::assertSame($type->value, $project['type'] ?? null);
 
             if ($type->supportsFrontend()) {
-                self::assertSame('none', $project['frontend']['renderer'] ?? null);
+                $frontend = $this->arrayValue($project, 'frontend');
+                self::assertSame('none', $frontend['renderer'] ?? null);
             }
         }
     }
@@ -81,21 +75,25 @@ final class ProjectGeneratorTest extends TestCase
         self::assertFileExists($target . '/vite.config.js');
 
         $composer = $this->jsonFile($target . '/composer.json');
-        self::assertSame('^3.0', $composer['require']['twig/twig'] ?? null);
+        $require = $this->arrayValue($composer, 'require');
+        self::assertSame('^3.0', $require['twig/twig'] ?? null);
 
         $package = $this->jsonFile($target . '/package.json');
-        self::assertSame('latest', $package['dependencies']['htmx.org'] ?? null);
-        self::assertSame('latest', $package['dependencies']['alpinejs'] ?? null);
-        self::assertSame('latest', $package['devDependencies']['tailwindcss'] ?? null);
-        self::assertSame('latest', $package['devDependencies']['daisyui'] ?? null);
+        $dependencies = $this->arrayValue($package, 'dependencies');
+        $devDependencies = $this->arrayValue($package, 'devDependencies');
+        self::assertSame('latest', $dependencies['htmx.org'] ?? null);
+        self::assertSame('latest', $dependencies['alpinejs'] ?? null);
+        self::assertSame('latest', $devDependencies['tailwindcss'] ?? null);
+        self::assertSame('latest', $devDependencies['daisyui'] ?? null);
 
         $manifest = $this->jsonFile($target . '/nexus.json');
+        $project = $this->arrayValue($manifest, 'project');
         self::assertSame([
             'renderer' => 'twig',
             'interactivity' => 'htmx-alpine',
             'css' => 'tailwind',
             'components' => 'daisyui',
-        ], $manifest['project']['frontend'] ?? null);
+        ], $this->arrayValue($project, 'frontend'));
 
         self::assertStringContainsString("@plugin \"daisyui\";", (string) file_get_contents($target . '/resources/frontend/app.css'));
     }
@@ -119,10 +117,12 @@ final class ProjectGeneratorTest extends TestCase
         self::assertFileExists($target . '/vite.config.js');
 
         $package = $this->jsonFile($target . '/package.json');
-        self::assertSame('latest', $package['dependencies']['react'] ?? null);
-        self::assertSame('latest', $package['dependencies']['react-dom'] ?? null);
-        self::assertSame('latest', $package['dependencies']['@mui/material'] ?? null);
-        self::assertSame('latest', $package['devDependencies']['@vitejs/plugin-react'] ?? null);
+        $dependencies = $this->arrayValue($package, 'dependencies');
+        $devDependencies = $this->arrayValue($package, 'devDependencies');
+        self::assertSame('latest', $dependencies['react'] ?? null);
+        self::assertSame('latest', $dependencies['react-dom'] ?? null);
+        self::assertSame('latest', $dependencies['@mui/material'] ?? null);
+        self::assertSame('latest', $devDependencies['@vitejs/plugin-react'] ?? null);
     }
 
     public function testPhpNativeWithoutAssetsDoesNotGenerateNodeTooling(): void
@@ -198,6 +198,19 @@ final class ProjectGeneratorTest extends TestCase
         $decoded = json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
         self::assertIsArray($decoded);
 
+        /** @var array<string, mixed> $decoded */
         return $decoded;
+    }
+
+    /** @param array<string, mixed> $array
+     *  @return array<string, mixed>
+     */
+    private function arrayValue(array $array, string $key): array
+    {
+        $value = $array[$key] ?? null;
+        self::assertIsArray($value);
+
+        /** @var array<string, mixed> $value */
+        return $value;
     }
 }
