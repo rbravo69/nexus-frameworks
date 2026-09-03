@@ -31,7 +31,8 @@ $connection = (new ConnectionFactory())->make($config);
 
 $healthSql = $driver === 'oci' ? 'SELECT 1 AS nexus_health FROM DUAL' : 'SELECT 1 AS nexus_health';
 $health = $connection->select($healthSql);
-$healthValue = $health[0]['nexus_health'] ?? null;
+$healthRow = $health[0] ?? [];
+$healthValue = array_values($healthRow)[0] ?? null;
 if (!is_int($healthValue) && !is_float($healthValue) && !is_string($healthValue)) {
     throw new RuntimeException(sprintf('%s health query returned an invalid value.', $driver));
 }
@@ -55,10 +56,17 @@ $createSql = match ($driver) {
 
 $connection->statement($dropSql);
 $connection->statement($createSql);
-$connection->statement("INSERT INTO {$table} (name) VALUES (?)", ['Nexus']);
-$rows = $connection->select("SELECT name FROM {$table}");
 
-if (($rows[0]['name'] ?? null) !== 'Nexus') {
+if ($driver === 'oci') {
+    $connection->statement("INSERT INTO {$table} (name) VALUES (:name)", ['name' => 'Nexus']);
+} else {
+    $connection->statement("INSERT INTO {$table} (name) VALUES (?)", ['Nexus']);
+}
+
+$rows = $connection->select("SELECT name FROM {$table}");
+$nameRow = $rows[0] ?? [];
+$nameValue = array_values($nameRow)[0] ?? null;
+if ($nameValue !== 'Nexus') {
     throw new RuntimeException(sprintf('%s insert/select probe failed.', $driver));
 }
 
