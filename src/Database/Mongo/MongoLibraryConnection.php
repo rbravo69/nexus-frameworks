@@ -25,6 +25,9 @@ final class MongoLibraryConnection implements MongoConnectionInterface
         }
 
         $client = new $clientClass($config->uri, $config->options);
+        if (!is_object($client)) {
+            throw new \RuntimeException('Unable to create the MongoDB client.');
+        }
 
         return new self($client, $config->database);
     }
