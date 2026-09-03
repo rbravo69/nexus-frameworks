@@ -18,6 +18,10 @@ if (!in_array($driver, ['pgsql', 'mysql', 'sqlsrv', 'oci'], true)) {
     throw new RuntimeException('DB_DRIVER must be pgsql, mysql, sqlsrv or oci.');
 }
 
+$driverOptions = $driver === 'sqlsrv'
+    ? ['Encrypt' => true, 'TrustServerCertificate' => true]
+    : [];
+
 $config = new DatabaseConfig(
     $driver,
     $database,
@@ -25,6 +29,7 @@ $config = new DatabaseConfig(
     $port > 0 ? $port : null,
     $username,
     $password,
+    driverOptions: $driverOptions,
 );
 
 $connection = (new ConnectionFactory())->make($config);
