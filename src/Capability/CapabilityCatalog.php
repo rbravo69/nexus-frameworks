@@ -14,11 +14,19 @@ final class CapabilityCatalog
 
     public static function official(): self
     {
-        return (new self())->add(new CapabilityDefinition(
-            name: 'redis',
-            package: 'nexus/redis',
-            provider: 'Nexus\\Redis\\RedisCapability',
-        ));
+        $provider = BundledCapability::class;
+        $package = 'nexus/framework';
+        $distribution = CapabilityDistribution::Bundled;
+
+        return (new self())
+            ->add(new CapabilityDefinition('database', $package, $provider, distribution: $distribution))
+            ->add(new CapabilityDefinition('eloquent', $package, $provider, ['database'], $distribution))
+            ->add(new CapabilityDefinition('mongo', $package, $provider, distribution: $distribution))
+            ->add(new CapabilityDefinition('cache', $package, $provider, distribution: $distribution))
+            ->add(new CapabilityDefinition('redis', $package, $provider, ['cache'], $distribution))
+            ->add(new CapabilityDefinition('cqrs', $package, $provider, distribution: $distribution))
+            ->add(new CapabilityDefinition('events', $package, $provider, distribution: $distribution))
+            ->add(new CapabilityDefinition('docker', $package, $provider, distribution: $distribution));
     }
 
     public function add(CapabilityDefinition $definition): self
