@@ -1,0 +1,166 @@
+name: Relational Integration
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: nexus
+          POSTGRES_USER: nexus
+          POSTGRES_PASSWORD: nexus
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nexus -d nexus"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist
+      - name: PostgreSQL live probe
+        env:
+          DB_DRIVER: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: nexus
+          DB_USERNAME: nexus
+          DB_PASSWORD: nexus
+        run: php tests/integration/relational.php
+
+  mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: nexus
+          MYSQL_USER: nexus
+          MYSQL_PASSWORD: nexus
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost -uroot -proot"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_mysql
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist
+      - name: MySQL live probe
+        env:
+          DB_DRIVER: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: nexus
+          DB_USERNAME: nexus
+          DB_PASSWORD: nexus
+        run: php tests/integration/relational.php
+
+  sqlserver:
+    runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: Nexus_Rc05_2026!
+        ports:
+          - 1433:1433
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Microsoft ODBC Driver 18
+        run: |
+          curl -sSL -O https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          rm packages-microsoft-prod.deb
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_sqlsrv
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist
+      - name: Wait for SQL Server
+        run: |
+          LAST_ERROR=""
+          for i in {1..20}; do
+            if OUTPUT=$(php -r 'try { new PDO("sqlsrv:Server=127.0.0.1,1433;Database=master;Encrypt=true;TrustServerCertificate=true", "sa", "Nexus_Rc05_2026!"); exit(0); } catch (Throwable $e) { fwrite(STDERR, $e->getMessage()); exit(1); }' 2>&1); then
+              exit 0
+            fi
+            LAST_ERROR="$OUTPUT"
+            sleep 3
+          done
+          printf 'SQL Server PDO connection failed: %s\n' "$LAST_ERROR" >&2
+          exit 1
+      - name: SQL Server live probe
+        env:
+          DB_DRIVER: sqlsrv
+          DB_HOST: 127.0.0.1
+          DB_PORT: 1433
+          DB_DATABASE: master
+          DB_USERNAME: sa
+          DB_PASSWORD: Nexus_Rc05_2026!
+        run: php tests/integration/relational.php
+
+  oracle:
+    runs-on: ubuntu-latest
+    services:
+      oracle:
+        image: gvenzl/oracle-free:23-slim-faststart
+        env:
+          ORACLE_PASSWORD: Nexus_Rc05_2026
+          APP_USER: nexus
+          APP_USER_PASSWORD: nexus
+        ports:
+          - 1521:1521
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_oci
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist
+      - name: Wait for Oracle
+        run: |
+          for i in {1..36}; do
+            php -r 'try { new PDO("oci:dbname=//127.0.0.1:1521/FREEPDB1;charset=AL32UTF8", "nexus", "nexus"); exit(0); } catch (Throwable $e) { exit(1); }' && exit 0
+            sleep 5
+          done
+          exit 1
+      - name: Oracle live probe
+        env:
+          DB_DRIVER: oci
+          DB_HOST: 127.0.0.1
+          DB_PORT: 1521
+          DB_DATABASE: FREEPDB1
+          DB_USERNAME: nexus
+          DB_PASSWORD: nexus
+        run: php tests/integration/relational.php

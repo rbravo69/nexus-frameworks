@@ -34,6 +34,32 @@ final class ConnectionFactoryTest extends TestCase
         self::assertSame('sqlsrv:Server=sql.internal,1444;Database=nexus', $dsn);
     }
 
+    public function testItBuildsSqlServerDsnWithExplicitTlsOptions(): void
+    {
+        $dsn = (new ConnectionFactory())->dsn(new DatabaseConfig(
+            driver: 'sqlsrv',
+            database: 'nexus',
+            driverOptions: ['Encrypt' => true, 'TrustServerCertificate' => true],
+        ));
+
+        self::assertSame(
+            'sqlsrv:Server=127.0.0.1,1433;Database=nexus;Encrypt=1;TrustServerCertificate=1',
+            $dsn,
+        );
+    }
+
+    public function testItRejectsSqlServerDsnOptionsForOtherDrivers(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        new DatabaseConfig(driver: 'pgsql', database: 'nexus', driverOptions: ['Encrypt' => true]);
+    }
+
+    public function testItRejectsUnknownSqlServerDsnOption(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        new DatabaseConfig(driver: 'sqlsrv', database: 'nexus', driverOptions: ['Unknown' => true]);
+    }
+
     public function testItBuildsOracleDsn(): void
     {
         $dsn = (new ConnectionFactory())->dsn(new DatabaseConfig(driver: 'oci', database: 'FREEPDB1', host: 'oracle.internal'));
