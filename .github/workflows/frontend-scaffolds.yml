@@ -1,0 +1,59 @@
+name: Frontend Scaffolds
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Twig + HTMX + Alpine + Tailwind + DaisyUI
+            args: --frontend=twig --interactivity=htmx-alpine --css=tailwind --components=daisyui
+          - name: React + Material UI
+            args: --frontend=react --css=none --components=mui
+          - name: Vue + Bootstrap
+            args: --frontend=vue --css=bootstrap
+          - name: Svelte + Bulma
+            args: --frontend=svelte --css=bulma
+          - name: SolidJS + Tailwind
+            args: --frontend=solid --css=tailwind
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      - name: Install Nexus dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Generate frontend scaffold
+        run: php bin/nexus new "$RUNNER_TEMP/frontend-app" --type=modular-monolith ${{ matrix.args }} --no-interaction
+
+      - name: Install frontend dependencies
+        working-directory: ${{ runner.temp }}/frontend-app
+        run: npm install --no-audit --no-fund
+
+      - name: Build frontend assets
+        working-directory: ${{ runner.temp }}/frontend-app
+        run: npm run build
