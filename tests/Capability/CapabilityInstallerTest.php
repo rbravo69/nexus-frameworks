@@ -6,6 +6,7 @@ namespace Nexus\Tests\Capability;
 
 use Nexus\Capability\CapabilityCatalog;
 use Nexus\Capability\CapabilityDefinition;
+use Nexus\Capability\CapabilityDistribution;
 use Nexus\Capability\CapabilityInstaller;
 use Nexus\Capability\CapabilityManifest;
 use Nexus\Capability\CapabilityResolver;
@@ -35,6 +36,28 @@ final class CapabilityInstallerTest extends TestCase
         self::assertSame(['cache', 'database'], $manifest->all());
         self::assertSame(['nexus/database', 'nexus/cache'], $packages->installed);
         self::assertSame([], $installer->install('cache'));
+    }
+
+    public function testBundledCapabilitiesOnlyMutateTheManifest(): void
+    {
+        $this->temporaryDirectory = new TemporaryDirectory();
+        $catalog = (new CapabilityCatalog())->add(new CapabilityDefinition(
+            'cache',
+            'nexus/framework',
+            CacheCapability::class,
+            distribution: CapabilityDistribution::Bundled,
+        ));
+        $manifest = new CapabilityManifest($this->temporaryDirectory->path());
+        $packages = new RecordingPackageManager();
+        $installer = new CapabilityInstaller($catalog, new CapabilityResolver($catalog), $manifest, $packages);
+
+        self::assertSame(['cache'], $installer->install('cache'));
+        self::assertSame(['cache'], $manifest->all());
+        self::assertSame([], $packages->installed);
+
+        self::assertTrue($installer->remove('cache'));
+        self::assertSame([], $manifest->all());
+        self::assertSame([], $packages->removed);
     }
 
     public function testItRollsBackPackagesWhenInstallationFails(): void

@@ -23,6 +23,7 @@ final readonly class CapabilityInstaller
         $installed = $this->manifest->all();
         $definitions = $this->resolver->resolve([$name]);
         $added = [];
+        $composerInstalled = [];
 
         try {
             foreach ($definitions as $definition) {
@@ -30,14 +31,18 @@ final readonly class CapabilityInstaller
                     continue;
                 }
 
-                $this->packages->install($definition->package);
+                if ($definition->requiresComposerMutation()) {
+                    $this->packages->install($definition->package);
+                    $composerInstalled[] = $definition->name;
+                }
+
                 $installed[] = $definition->name;
                 $added[] = $definition->name;
             }
 
             $this->manifest->replace($installed);
         } catch (Throwable $exception) {
-            foreach (array_reverse($added) as $addedName) {
+            foreach (array_reverse($composerInstalled) as $addedName) {
                 try {
                     $this->packages->remove($this->catalog->get($addedName)->package);
                 } catch (Throwable) {
@@ -77,6 +82,10 @@ final readonly class CapabilityInstaller
         ));
 
         $this->manifest->replace($remaining);
+
+        if (!$definition->requiresComposerMutation()) {
+            return true;
+        }
 
         try {
             $this->packages->remove($definition->package);

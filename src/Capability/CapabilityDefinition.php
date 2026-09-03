@@ -14,6 +14,7 @@ final readonly class CapabilityDefinition
         public string $package,
         public string $provider,
         public array $dependencies = [],
+        public CapabilityDistribution $distribution = CapabilityDistribution::Composer,
     ) {
         self::assertName($name);
 
@@ -32,6 +33,11 @@ final readonly class CapabilityDefinition
         if (in_array($name, $dependencies, true)) {
             throw new \InvalidArgumentException(sprintf('Capability "%s" cannot depend on itself.', $name));
         }
+    }
+
+    public function requiresComposerMutation(): bool
+    {
+        return $this->distribution === CapabilityDistribution::Composer;
     }
 
     private static function assertName(string $name): void
