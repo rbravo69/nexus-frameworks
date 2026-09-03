@@ -133,4 +133,14 @@ final class RecordingMongoConnection implements MongoConnectionInterface
     {
         return 'index';
     }
+
+    public function collections(): array
+    {
+        return [];
+    }
+
+    public function indexes(string $collection): array
+    {
+        return [];
+    }
 }
