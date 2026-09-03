@@ -27,8 +27,8 @@
 - RC-01 Architectural Hardening ✅
 - RC-02 Package & Capability Model ✅
 - RC-03 Validation, Cache and Redis hardening
-- RC-04 MongoDB concrete adapter and real persistence
-- RC-05 Relational integration matrix
+- RC-04 MongoDB concrete adapter and real persistence ✅
+- RC-05 Relational integration matrix ✅
 - RC-06 Production-ready Docker runtimes
 - RC-07 CI, dependency audit and coding standards
 - RC-08 Documentation and support-claim reconciliation
