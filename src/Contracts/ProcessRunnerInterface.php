@@ -6,6 +6,6 @@ namespace Nexus\Contracts;
 
 interface ProcessRunnerInterface
 {
-    /** @param list<string> $command */
+    /** @param non-empty-list<string> $command */
     public function run(array $command, string $workingDirectory): int;
 }
