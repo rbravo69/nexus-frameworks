@@ -24,8 +24,8 @@
         "illuminate/database": "Required only when using the optional Nexus Eloquent integration.",
         "ext-pdo_sqlsrv": "Required for SQL Server connections through PDO.",
         "ext-pdo_oci": "Required for Oracle connections through PDO.",
-        "ext-mongodb": "Required by concrete MongoDB adapters.",
-        "mongodb/mongodb": "Recommended official PHP library when implementing the MongoDB connection adapter.",
+        "ext-mongodb": "Required when using the official MongoDB adapter.",
+        "mongodb/mongodb": "Required when using the official MongoDB adapter.",
         "ext-redis": "Recommended for a native Redis client adapter.",
         "predis/predis": "Alternative pure-PHP Redis client adapter."
     },
