@@ -11,6 +11,9 @@ return (new PhpCsFixer\Config())
     ->setRiskyAllowed(true)
     ->setRules([
         '@PER-CS2x0' => true,
+        'braces_position' => [
+            'functions_opening_brace' => 'next_line_unless_newline_at_signature_end',
+        ],
         'class_definition' => [
             'inline_constructor_arguments' => false,
             'space_before_parenthesis' => false,
@@ -18,6 +21,10 @@ return (new PhpCsFixer\Config())
         'declare_strict_types' => true,
         'function_declaration' => [
             'closure_fn_spacing' => 'one',
+        ],
+        'method_argument_space' => [
+            'after_heredoc' => false,
+            'on_multiline' => 'ignore',
         ],
         'single_line_empty_body' => false,
         'trailing_comma_in_multiline' => [
