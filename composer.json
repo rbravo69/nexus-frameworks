@@ -15,6 +15,7 @@
         "psr/container": "^2.0"
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
         "illuminate/database": "^13.0",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^12.0"
@@ -46,10 +47,18 @@
         "test": "phpunit",
         "test:architecture": "phpunit tests/Architecture",
         "analyse": "phpstan analyse --no-progress",
+        "cs:check": "php-cs-fixer fix --dry-run --diff --allow-risky=yes",
+        "cs:fix": "php-cs-fixer fix --allow-risky=yes",
+        "audit": "composer audit --no-interaction",
         "benchmark": "php bin/nexus benchmark --iterations=5000 --warmup=200",
         "quality": [
             "@test",
             "@analyse"
+        ],
+        "verify": [
+            "@quality",
+            "@cs:check",
+            "@audit"
         ]
     },
     "config": {
