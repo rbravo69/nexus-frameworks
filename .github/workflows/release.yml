@@ -27,7 +27,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$RELEASE_TARGET_SHA"
-          notes="docs/releases/${RELEASE_VERSION#v}.md"
+          notes="docs/releases/${RELEASE_VERSION}.md"
           test -f "$notes"
           if git rev-parse "$RELEASE_VERSION" >/dev/null 2>&1; then
             echo "Tag already exists: $RELEASE_VERSION" >&2
@@ -90,7 +90,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          notes="docs/releases/${RELEASE_VERSION#v}.md"
+          notes="docs/releases/${RELEASE_VERSION}.md"
           gh release create "$RELEASE_VERSION" \
             --title "Nexus Framework $RELEASE_VERSION" \
             --notes-file "$notes" \
