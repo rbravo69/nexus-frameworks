@@ -46,7 +46,7 @@ final class MongoManager
     {
         $names = array_unique([...array_keys($this->configs), ...array_keys($this->connections)]);
         sort($names);
-        return array_values($names);
+        return $names;
     }
 
     private function assertName(string $name): void
