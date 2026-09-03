@@ -7,19 +7,29 @@ namespace Nexus\Redis;
 use DateInterval;
 use DateTimeImmutable;
 use Nexus\Cache\CacheInterface;
+use Nexus\Cache\PhpSerializer;
+use Nexus\Cache\SerializerInterface;
 
 final class RedisCache implements CacheInterface
 {
+    private readonly SerializerInterface $serializer;
+
     public function __construct(
         private readonly RedisClientInterface $client,
         private readonly string $prefix = 'nexus:cache:',
+        ?SerializerInterface $serializer = null,
     ) {
+        if ($prefix === '') {
+            throw new \InvalidArgumentException('Redis cache prefix cannot be empty.');
+        }
+
+        $this->serializer = $serializer ?? new PhpSerializer();
     }
 
     public function get(string $key, mixed $default = null): mixed
     {
         $payload = $this->client->get($this->key($key));
-        return $payload === null ? $default : unserialize($payload);
+        return $payload === null ? $default : $this->serializer->unserialize($payload);
     }
 
     public function set(string $key, mixed $value, int|DateInterval|null $ttl = null): void
@@ -30,7 +40,7 @@ final class RedisCache implements CacheInterface
             return;
         }
 
-        $this->client->set($this->key($key), serialize($value), $seconds);
+        $this->client->set($this->key($key), $this->serializer->serialize($value), $seconds);
     }
 
     public function delete(string $key): void
@@ -45,7 +55,7 @@ final class RedisCache implements CacheInterface
 
     public function clear(): void
     {
-        $this->client->clear();
+        $this->client->deleteByPrefix($this->prefix);
     }
 
     public function remember(string $key, int|DateInterval|null $ttl, callable $resolver): mixed
