@@ -16,6 +16,8 @@ Nexus uses PHP-CS-Fixer with the current `@PER-CS2x0` rule set as the baseline. 
 - empty bodies remain multiline;
 - short arrow functions keep one space before `(`;
 - anonymous-class constructor arguments keep the existing spacing;
+- function opening braces keep the established Nexus multiline style;
+- multiline calls containing heredoc keep their existing layout;
 - heredoc arguments are not forced to gain trailing commas.
 
 Strict type declarations remain enforced.
@@ -51,6 +53,6 @@ composer verify
 The Quality workflow has two responsibilities:
 
 1. `quality` matrix on PHP 8.4 and 8.5: Composer validation, PHPUnit, PHPStan max and benchmark smoke.
-2. `standards` on PHP 8.5: Composer validation, PER-CS check and dependency audit.
+2. `standards` on PHP 8.4: Composer validation, PER-CS check and dependency audit. Running the formatter on the minimum supported PHP version prevents it from normalizing code toward syntax unavailable to that minimum.
 
 Database integration and Docker runtime workflows remain independent gates so failures stay attributable to the subsystem that caused them.
