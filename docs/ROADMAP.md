@@ -35,7 +35,7 @@ and future direction; it is not, by itself, a runtime support contract.
 - RC-05 Relational integration matrix ✅
 - RC-06 Production-ready Docker runtimes ✅
 - RC-07 CI, dependency audit and coding standards ✅
-- RC-08 Documentation and support-claim reconciliation
+- RC-08 Documentation and support-claim reconciliation ✅
 - RC-09 v0.1.0-rc.1
 - RC-10 v0.1.0 release validation
 
