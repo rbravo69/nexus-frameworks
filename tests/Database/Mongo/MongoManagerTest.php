@@ -105,7 +105,7 @@ final class InMemoryMongoConnection implements MongoConnectionInterface
     {
         $names = array_unique([...array_keys($this->documents), ...array_keys($this->indexes)]);
         sort($names);
-        return array_values($names);
+        return $names;
     }
 
     public function indexes(string $collection): array
