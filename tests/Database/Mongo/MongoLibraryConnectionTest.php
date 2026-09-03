@@ -81,7 +81,10 @@ final class FakeMongoCollection
         };
     }
 
-    /** @param array<string, mixed> $filter */
+    /**
+     * @param array<string, mixed> $filter
+     * @return list<array<string, mixed>>
+     */
     public function find(array $filter): array
     {
         unset($filter);
