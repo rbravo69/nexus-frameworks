@@ -37,12 +37,7 @@ final class ConnectionFactory
                 $config->database,
                 $config->charset ?? 'utf8mb4',
             ),
-            'sqlsrv' => sprintf(
-                'sqlsrv:Server=%s,%d;Database=%s',
-                $config->host ?? '127.0.0.1',
-                $config->port ?? 1433,
-                $config->database,
-            ),
+            'sqlsrv' => $this->sqlServerDsn($config),
             'oci' => sprintf(
                 'oci:dbname=//%s:%d/%s;charset=%s',
                 $config->host ?? '127.0.0.1',
@@ -51,6 +46,31 @@ final class ConnectionFactory
                 $config->charset ?? 'AL32UTF8',
             ),
         };
+    }
+
+    private function sqlServerDsn(DatabaseConfig $config): string
+    {
+        $dsn = sprintf(
+            'sqlsrv:Server=%s,%d;Database=%s',
+            $config->host ?? '127.0.0.1',
+            $config->port ?? 1433,
+            $config->database,
+        );
+
+        foreach ($config->driverOptions as $name => $value) {
+            $dsn .= sprintf(';%s=%s', $name, $this->dsnOptionValue($value));
+        }
+
+        return $dsn;
+    }
+
+    private function dsnOptionValue(string|int|bool $value): string
+    {
+        if (is_bool($value)) {
+            return $value ? 'yes' : 'no';
+        }
+
+        return (string) $value;
     }
 
     /** @return array<int, mixed> */
