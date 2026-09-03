@@ -75,7 +75,10 @@ jobs:
           set -euo pipefail
           composer validate --strict
           archive_dir="$(mktemp -d)"
-          composer archive --format=zip --file="$archive_dir/nexus-framework"
+          (
+            cd "$archive_dir"
+            composer --working-dir="$GITHUB_WORKSPACE" archive --format=zip --file=nexus-framework
+          )
           unpack_dir="$(mktemp -d)"
           unzip -q "$archive_dir/nexus-framework.zip" -d "$unpack_dir"
           cd "$unpack_dir"
