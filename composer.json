@@ -3,6 +3,7 @@
     "description": "A progressive, modular application framework for modern PHP.",
     "type": "library",
     "license": "MIT",
+    "homepage": "https://github.com/rbravo69/nexus-frameworks",
     "keywords": [
         "framework",
         "php",
@@ -10,6 +11,10 @@
         "hexagonal",
         "ddd"
     ],
+    "support": {
+        "issues": "https://github.com/rbravo69/nexus-frameworks/issues",
+        "source": "https://github.com/rbravo69/nexus-frameworks"
+    },
     "require": {
         "php": "^8.4",
         "psr/container": "^2.0"
@@ -64,6 +69,15 @@
     "config": {
         "sort-packages": true,
         "allow-plugins": false
+    },
+    "archive": {
+        "exclude": [
+            "/.github",
+            "/tests",
+            "/phpunit.xml.dist",
+            "/phpstan.neon.dist",
+            "/.php-cs-fixer.dist.php"
+        ]
     },
     "minimum-stability": "stable",
     "prefer-stable": true
