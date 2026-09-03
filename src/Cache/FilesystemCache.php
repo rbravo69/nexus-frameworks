@@ -9,11 +9,17 @@ use DateTimeImmutable;
 
 final class FilesystemCache implements CacheInterface
 {
-    public function __construct(private readonly string $directory)
-    {
+    private readonly SerializerInterface $serializer;
+
+    public function __construct(
+        private readonly string $directory,
+        ?SerializerInterface $serializer = null,
+    ) {
         if ($directory === '') {
             throw new \InvalidArgumentException('Cache directory cannot be empty.');
         }
+
+        $this->serializer = $serializer ?? new PhpSerializer();
     }
 
     public function get(string $key, mixed $default = null): mixed
@@ -31,7 +37,7 @@ final class FilesystemCache implements CacheInterface
         }
 
         $this->ensureDirectory();
-        $payload = serialize([
+        $payload = $this->serializer->serialize([
             'expiresAt' => $seconds === null ? null : time() + $seconds,
             'value' => $value,
         ]);
@@ -100,7 +106,7 @@ final class FilesystemCache implements CacheInterface
             throw new \RuntimeException(sprintf('Unable to read cache item "%s".', $key));
         }
 
-        $item = unserialize($payload);
+        $item = $this->serializer->unserialize($payload);
         if (!is_array($item) || !array_key_exists('expiresAt', $item) || !array_key_exists('value', $item)) {
             throw new \UnexpectedValueException(sprintf('Cache item "%s" is invalid.', $key));
         }

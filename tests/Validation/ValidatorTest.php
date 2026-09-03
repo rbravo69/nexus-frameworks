@@ -36,6 +36,13 @@ final class ValidatorTest extends TestCase
         );
     }
 
+    public function testItCountsUnicodeCharactersForLengthRules(): void
+    {
+        $result = (new Validator())->validate(['name' => 'México'], ['name' => 'string|min:6|max:6']);
+
+        self::assertTrue($result->valid());
+    }
+
     public function testItCollectsErrorsAndExposesProblemDetails(): void
     {
         $result = (new Validator())->validate(

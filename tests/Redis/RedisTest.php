@@ -24,6 +24,20 @@ final class RedisTest extends TestCase
         self::assertSame('value', $cache->remember('x', 60, static fn (): string => 'other'));
     }
 
+    public function testRedisCacheClearOnlyDeletesItsNamespace(): void
+    {
+        $client = new InMemoryRedisClient();
+        $cache = new RedisCache($client, 'app:cache:');
+
+        $cache->set('one', 1);
+        $client->set('app:queue:job', 'keep');
+        $cache->clear();
+
+        self::assertFalse($cache->has('one'));
+        self::assertSame('keep', $client->get('app:queue:job'));
+        self::assertSame('app:cache:', $client->lastDeletedPrefix);
+    }
+
     public function testRedisLockTracksOwnership(): void
     {
         $client = new InMemoryRedisClient();
@@ -47,6 +61,7 @@ final class InMemoryRedisClient implements RedisClientInterface
     private array $locks = [];
 
     public int $writes = 0;
+    public ?string $lastDeletedPrefix = null;
 
     public function get(string $key): ?string
     {
@@ -70,9 +85,14 @@ final class InMemoryRedisClient implements RedisClientInterface
         return array_key_exists($key, $this->values);
     }
 
-    public function clear(): void
+    public function deleteByPrefix(string $prefix): void
     {
-        $this->values = [];
+        $this->lastDeletedPrefix = $prefix;
+        foreach (array_keys($this->values) as $key) {
+            if (str_starts_with($key, $prefix)) {
+                unset($this->values[$key]);
+            }
+        }
     }
 
     public function acquireLock(string $key, string $token, int $ttlMilliseconds): bool

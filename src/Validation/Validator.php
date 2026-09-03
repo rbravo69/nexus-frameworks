@@ -118,10 +118,21 @@ final class Validator
     private function sizeOf(mixed $value): ?float
     {
         return match (true) {
-            is_string($value) => (float) mb_strlen($value),
+            is_string($value) => (float) $this->stringLength($value),
             is_int($value), is_float($value) => (float) $value,
             is_array($value) => (float) count($value),
             default => null,
         };
+    }
+
+    private function stringLength(string $value): int
+    {
+        if (function_exists('mb_strlen')) {
+            return mb_strlen($value, 'UTF-8');
+        }
+
+        $count = preg_match_all('/./us', $value, $matches);
+
+        return $count === false ? strlen($value) : $count;
     }
 }
