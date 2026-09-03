@@ -48,7 +48,7 @@ jobs:
         run: |
           set -euo pipefail
           version='${{ inputs.version }}'
-          notes="docs/releases/${version#v}.md"
+          notes="docs/releases/${version}.md"
           test -f "$notes"
           if git rev-parse "$version" >/dev/null 2>&1; then
             echo "Tag already exists: $version" >&2
@@ -101,7 +101,7 @@ jobs:
         run: |
           set -euo pipefail
           version='${{ inputs.version }}'
-          notes="docs/releases/${version#v}.md"
+          notes="docs/releases/${version}.md"
           args=(release create "$version" --title "Nexus Framework $version" --notes-file "$notes")
           if [[ '${{ inputs.prerelease }}' == 'true' ]]; then
             args+=(--prerelease)
