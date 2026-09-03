@@ -67,7 +67,7 @@ final class ConnectionFactory
     private function dsnOptionValue(string|int|bool $value): string
     {
         if (is_bool($value)) {
-            return $value ? 'yes' : 'no';
+            return $value ? '1' : '0';
         }
 
         return (string) $value;
