@@ -8,6 +8,7 @@ use Nexus\Container\Container;
 use Nexus\Http\HttpKernel;
 use Nexus\Http\Request;
 use Nexus\Http\Response;
+use Nexus\Rest\ValidationExceptionRenderer;
 use Nexus\Routing\Router;
 use Nexus\Validation\Validator;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +27,11 @@ final class ValidationHttpTest extends TestCase
             return Response::json([]);
         });
 
-        $response = (new HttpKernel($router, new Container()))->handle(new Request('POST', '/users'));
+        $response = (new HttpKernel(
+            $router,
+            new Container(),
+            exceptionRenderers: [new ValidationExceptionRenderer()],
+        ))->handle(new Request('POST', '/users'));
 
         self::assertSame(422, $response->status());
         self::assertSame('application/problem+json; charset=utf-8', $response->headers()['content-type'] ?? null);
