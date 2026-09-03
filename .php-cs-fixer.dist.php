@@ -10,11 +10,19 @@ $finder = PhpCsFixer\Finder::create()
 return (new PhpCsFixer\Config())
     ->setRiskyAllowed(true)
     ->setRules([
-        '@PER-CS2.0' => true,
-        'array_syntax' => ['syntax' => 'short'],
+        '@PER-CS2x0' => true,
+        'class_definition' => [
+            'inline_constructor_arguments' => false,
+            'space_before_parenthesis' => false,
+        ],
         'declare_strict_types' => true,
-        'no_unused_imports' => true,
-        'ordered_imports' => ['sort_algorithm' => 'alpha'],
-        'single_quote' => true,
+        'function_declaration' => [
+            'closure_fn_spacing' => 'one',
+        ],
+        'single_line_empty_body' => false,
+        'trailing_comma_in_multiline' => [
+            'after_heredoc' => false,
+            'elements' => ['arguments', 'array_destructuring', 'arrays', 'match', 'parameters'],
+        ],
     ])
     ->setFinder($finder);
