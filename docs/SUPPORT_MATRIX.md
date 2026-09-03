@@ -46,6 +46,37 @@ roadmap intent.
 | OpenAPI | Implemented | OpenAPI 3.1 generation from registered routes |
 | gRPC transport | Planned | A project-generation preset exists, but v0.1 does not implement a gRPC runtime |
 
+## Frontend scaffolding
+
+Traditional and modular monolith project generation can record and scaffold a
+frontend stack without making frontend libraries part of Nexus Core.
+
+| Area | v0.1 claim | Validation |
+| --- | --- | --- |
+| Twig | Composer dependency + starter view scaffolding | PHPUnit + generated scaffold CI |
+| PHP Native | Starter PHP view scaffolding | PHPUnit |
+| React | Vite starter scaffolding | Generated scaffold Build CI |
+| Vue.js | Vite starter scaffolding | Generated scaffold Build CI |
+| Svelte | Vite starter scaffolding | Generated scaffold Build CI |
+| SolidJS | Vite starter scaffolding | Generated scaffold Build CI |
+| HTMX / Alpine.js | Optional server-rendered asset scaffolding | Generated scaffold Build CI |
+| Tailwind CSS | Optional Vite CSS scaffolding | Generated scaffold Build CI |
+| Bootstrap | Optional asset scaffolding | Generated scaffold Build CI |
+| Bulma | Optional CSS scaffolding | Generated scaffold Build CI |
+| DaisyUI | Optional Tailwind component plugin | Generated scaffold Build CI |
+| Material UI | Optional React component dependency | Generated scaffold Build CI |
+
+Compatibility rules are enforced before generation: HTMX/Alpine.js are limited
+to Twig or PHP Native selections, DaisyUI requires Tailwind CSS, and Material UI
+requires React. The selected stack is stored in `nexus.json`.
+
+**Validation boundary:** this is project and asset **scaffolding** support. Vite
+CI installs the generated npm dependencies and proves representative generated
+stacks can build. It does not yet claim a Nexus-native view abstraction,
+automatic HTTP controller-to-template rendering, SPA routing, SSR/hydration, or
+production asset deployment integration. Those claims require separate runtime
+features and tests.
+
 ## Relational databases
 
 | Engine | Database Core | Schema/Code First/basic Database First | Live CI |

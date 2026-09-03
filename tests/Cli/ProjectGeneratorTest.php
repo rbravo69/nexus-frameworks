@@ -6,7 +6,12 @@ namespace Nexus\Tests\Cli;
 
 use Nexus\Application;
 use Nexus\ApplicationState;
+use Nexus\Cli\ComponentLibrary;
+use Nexus\Cli\CssFramework;
 use Nexus\Cli\Filesystem;
+use Nexus\Cli\FrontendInteractivity;
+use Nexus\Cli\FrontendRenderer;
+use Nexus\Cli\FrontendSelection;
 use Nexus\Cli\ProjectGenerator;
 use Nexus\Cli\ProjectType;
 use Nexus\Exception\InvalidInputException;
@@ -38,17 +43,116 @@ final class ProjectGeneratorTest extends TestCase
             self::assertFileExists($target . '/src/AppModule.php');
             self::assertTrue(is_executable($target . '/bin/app'));
 
-            $manifest = json_decode(
-                (string) file_get_contents($target . '/nexus.json'),
-                true,
-                flags: JSON_THROW_ON_ERROR,
-            );
-
-            self::assertIsArray($manifest);
-            $project = $manifest['project'] ?? null;
-            self::assertIsArray($project);
+            $manifest = $this->jsonFile($target . '/nexus.json');
+            $project = $this->arrayValue($manifest, 'project');
             self::assertSame($type->value, $project['type'] ?? null);
+
+            if ($type->supportsFrontend()) {
+                $frontend = $this->arrayValue($project, 'frontend');
+                self::assertSame('none', $frontend['renderer'] ?? null);
+            }
         }
+    }
+
+    public function testItGeneratesTwigHtmxAlpineTailwindAndDaisyUi(): void
+    {
+        $this->temporaryDirectory = new TemporaryDirectory();
+        $target = (new ProjectGenerator(new Filesystem()))->generate(
+            'twig-app',
+            ProjectType::ModularMonolith,
+            $this->temporaryDirectory->path(),
+            new FrontendSelection(
+                FrontendRenderer::Twig,
+                FrontendInteractivity::HtmxAlpine,
+                CssFramework::Tailwind,
+                ComponentLibrary::DaisyUi,
+            ),
+        );
+
+        self::assertFileExists($target . '/resources/views/home.twig');
+        self::assertFileExists($target . '/resources/frontend/app.js');
+        self::assertFileExists($target . '/resources/frontend/app.css');
+        self::assertFileExists($target . '/vite.config.js');
+
+        $composer = $this->jsonFile($target . '/composer.json');
+        $require = $this->arrayValue($composer, 'require');
+        self::assertSame('^3.0', $require['twig/twig'] ?? null);
+
+        $package = $this->jsonFile($target . '/package.json');
+        $dependencies = $this->arrayValue($package, 'dependencies');
+        $devDependencies = $this->arrayValue($package, 'devDependencies');
+        self::assertSame('latest', $dependencies['htmx.org'] ?? null);
+        self::assertSame('latest', $dependencies['alpinejs'] ?? null);
+        self::assertSame('latest', $devDependencies['tailwindcss'] ?? null);
+        self::assertSame('latest', $devDependencies['daisyui'] ?? null);
+
+        $manifest = $this->jsonFile($target . '/nexus.json');
+        $project = $this->arrayValue($manifest, 'project');
+        self::assertSame([
+            'renderer' => 'twig',
+            'interactivity' => 'htmx-alpine',
+            'css' => 'tailwind',
+            'components' => 'daisyui',
+        ], $this->arrayValue($project, 'frontend'));
+
+        self::assertStringContainsString("@plugin \"daisyui\";", (string) file_get_contents($target . '/resources/frontend/app.css'));
+    }
+
+    public function testItGeneratesReactWithMaterialUi(): void
+    {
+        $this->temporaryDirectory = new TemporaryDirectory();
+        $target = (new ProjectGenerator(new Filesystem()))->generate(
+            'react-app',
+            ProjectType::Monolith,
+            $this->temporaryDirectory->path(),
+            new FrontendSelection(
+                FrontendRenderer::React,
+                FrontendInteractivity::None,
+                CssFramework::None,
+                ComponentLibrary::MaterialUi,
+            ),
+        );
+
+        self::assertFileExists($target . '/resources/frontend/main.jsx');
+        self::assertFileExists($target . '/vite.config.js');
+
+        $package = $this->jsonFile($target . '/package.json');
+        $dependencies = $this->arrayValue($package, 'dependencies');
+        $devDependencies = $this->arrayValue($package, 'devDependencies');
+        self::assertSame('latest', $dependencies['react'] ?? null);
+        self::assertSame('latest', $dependencies['react-dom'] ?? null);
+        self::assertSame('latest', $dependencies['@mui/material'] ?? null);
+        self::assertSame('latest', $devDependencies['@vitejs/plugin-react'] ?? null);
+    }
+
+    public function testPhpNativeWithoutAssetsDoesNotGenerateNodeTooling(): void
+    {
+        $this->temporaryDirectory = new TemporaryDirectory();
+        $target = (new ProjectGenerator(new Filesystem()))->generate(
+            'php-app',
+            ProjectType::Monolith,
+            $this->temporaryDirectory->path(),
+            new FrontendSelection(FrontendRenderer::Php),
+        );
+
+        self::assertFileExists($target . '/resources/views/home.php');
+        self::assertFileDoesNotExist($target . '/package.json');
+        self::assertFileDoesNotExist($target . '/vite.config.js');
+    }
+
+    public function testItRejectsFrontendStacksForApiProjects(): void
+    {
+        $this->temporaryDirectory = new TemporaryDirectory();
+
+        $this->expectException(InvalidInputException::class);
+        $this->expectExceptionMessage('Frontend stacks are available only for monolith project types.');
+
+        (new ProjectGenerator(new Filesystem()))->generate(
+            'api-with-frontend',
+            ProjectType::Api,
+            $this->temporaryDirectory->path(),
+            new FrontendSelection(FrontendRenderer::React),
+        );
     }
 
     public function testItRefusesToWriteIntoANonEmptyDirectory(): void
@@ -86,5 +190,27 @@ final class ProjectGeneratorTest extends TestCase
         self::assertSame(ApplicationState::Booted, $application->state());
 
         $application->shutdown();
+    }
+
+    /** @return array<string, mixed> */
+    private function jsonFile(string $path): array
+    {
+        $decoded = json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
+        self::assertIsArray($decoded);
+
+        /** @var array<string, mixed> $decoded */
+        return $decoded;
+    }
+
+    /** @param array<string, mixed> $array
+     *  @return array<string, mixed>
+     */
+    private function arrayValue(array $array, string $key): array
+    {
+        $value = $array[$key] ?? null;
+        self::assertIsArray($value);
+
+        /** @var array<string, mixed> $value */
+        return $value;
     }
 }

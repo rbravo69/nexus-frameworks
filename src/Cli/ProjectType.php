@@ -27,6 +27,11 @@ enum ProjectType: string
         };
     }
 
+    public function supportsFrontend(): bool
+    {
+        return $this === self::Monolith || $this === self::ModularMonolith;
+    }
+
     /** @return non-empty-array<string, string> */
     public static function choices(): array
     {

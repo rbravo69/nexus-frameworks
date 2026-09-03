@@ -51,6 +51,8 @@ Implemented in the current tree:
 - cache, Redis contracts/cache/locks, CQRS, synchronous events;
 - seeders, factories and deterministic fake-data foundations;
 - optional Docker generation for FrankenPHP, PHP-FPM + Nginx, RoadRunner and OpenSwoole;
+- monolith frontend scaffolding for Twig, PHP Native, React, Vue.js, Svelte and SolidJS;
+- optional HTMX, Alpine.js, Tailwind CSS, Bootstrap, Bulma, DaisyUI and Material UI scaffolding;
 - PHPUnit, PHPStan max, PER-CS checks, dependency audit and benchmark smoke gates.
 
 Important validation boundaries are documented in the
@@ -112,8 +114,8 @@ composer verify
 ```
 
 `composer verify` runs the unit test/static-analysis suite, coding-standard
-check and dependency security audit. CI also runs Docker runtime build checks
-and live relational integration probes.
+check and dependency security audit. CI also runs Docker runtime build checks,
+live relational integration probes and generated frontend build smoke tests.
 
 ## CLI
 
@@ -134,6 +136,36 @@ API REST, microservice, gRPC service, module, traditional monolith and modular
 monolith. The preset name describes generated project intent; it does **not**
 mean every corresponding runtime transport (for example gRPC) is implemented
 in v0.1. CI can use `--no-interaction` for deterministic generation.
+
+Traditional and modular monolith presets can also scaffold a frontend stack.
+The wizard keeps rendering, interactivity, CSS and component libraries as
+separate decisions:
+
+- frontend renderer: `twig`, `php`, `react`, `vue`, `svelte`, `solid` or `none`;
+- server-rendered interactivity: `none`, `htmx`, `alpine` or `htmx-alpine`;
+- CSS framework: `none`, `tailwind`, `bootstrap` or `bulma`;
+- component library: `none`, `daisyui` or `mui`.
+
+Compatibility is validated before files are generated: HTMX/Alpine.js are
+restricted to Twig or PHP Native rendering, DaisyUI requires Tailwind CSS, and
+Material UI requires React.
+
+A deterministic non-interactive example is:
+
+```bash
+vendor/bin/nexus new storefront \
+  --type=modular-monolith \
+  --frontend=twig \
+  --interactivity=htmx-alpine \
+  --css=tailwind \
+  --components=daisyui \
+  --no-interaction
+```
+
+When frontend assets are needed Nexus generates `package.json`, Vite
+configuration and the corresponding source files. Twig is added to Composer
+only when the Twig renderer is selected. The selected stack is recorded in
+`nexus.json` so tooling can inspect it later.
 
 Capabilities are Composer packages selected in `nexus.json`. Nexus installs
 their dependencies in order, prevents unsafe removals and loads only the
