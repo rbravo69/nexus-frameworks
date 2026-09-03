@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Tag to publish, for example v0.1.0-rc.1'
+        required: true
+        type: string
+      prerelease:
+        description: 'Publish as GitHub prerelease'
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate version input
+        shell: bash
+        run: |
+          set -euo pipefail
+          version='${{ inputs.version }}'
+          if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "Invalid release version: $version" >&2
+            exit 1
+          fi
+
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+
+      - name: Verify release source
+        shell: bash
+        run: |
+          set -euo pipefail
+          version='${{ inputs.version }}'
+          notes="docs/releases/${version#v}.md"
+          test -f "$notes"
+          if git rev-parse "$version" >/dev/null 2>&1; then
+            echo "Tag already exists: $version" >&2
+            exit 1
+          fi
+          composer validate --strict
+          composer install --no-interaction --prefer-dist
+          composer verify
+
+      - name: Smoke install package from source
+        shell: bash
+        run: |
+          set -euo pipefail
+          consumer="$(mktemp -d)"
+          cd "$consumer"
+          cat > composer.json <<JSON
+          {
+            "name": "nexus/release-smoke-consumer",
+            "minimum-stability": "dev",
+            "prefer-stable": true,
+            "repositories": [
+              {
+                "type": "path",
+                "url": "${GITHUB_WORKSPACE}",
+                "options": {"symlink": false}
+              }
+            ],
+            "require": {
+              "nexus/framework": "@dev"
+            }
+          }
+          JSON
+          composer install --no-interaction --prefer-dist --no-dev
+          vendor/bin/nexus about
+
+      - name: Create tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          version='${{ inputs.version }}'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git tag -a "$version" -m "Nexus Framework $version"
+          git push origin "$version"
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version='${{ inputs.version }}'
+          notes="docs/releases/${version#v}.md"
+          args=(release create "$version" --title "Nexus Framework $version" --notes-file "$notes")
+          if [[ '${{ inputs.prerelease }}' == 'true' ]]; then
+            args+=(--prerelease)
+          fi
+          gh "${args[@]}"

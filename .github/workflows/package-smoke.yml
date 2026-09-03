@@ -1,0 +1,84 @@
+name: Package Smoke
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  consumer-install:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer metadata
+        run: composer validate --strict
+
+      - name: Install Nexus in a clean consumer
+        shell: bash
+        run: |
+          set -euo pipefail
+          consumer="$(mktemp -d)"
+          cd "$consumer"
+          cat > composer.json <<JSON
+          {
+            "name": "nexus/package-smoke-consumer",
+            "minimum-stability": "dev",
+            "prefer-stable": true,
+            "repositories": [
+              {
+                "type": "path",
+                "url": "${GITHUB_WORKSPACE}",
+                "options": {"symlink": false}
+              }
+            ],
+            "require": {
+              "nexus/framework": "@dev"
+            }
+          }
+          JSON
+          composer install --no-interaction --prefer-dist --no-dev
+          vendor/bin/nexus about
+
+  archive-install:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+
+      - name: Build and install Composer archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          composer validate --strict
+          composer archive --format=zip --file=nexus-framework
+          unpack_dir="$(mktemp -d)"
+          unzip -q "$GITHUB_WORKSPACE/nexus-framework.zip" -d "$unpack_dir"
+          rm "$GITHUB_WORKSPACE/nexus-framework.zip"
+          cd "$unpack_dir"
+          composer install --no-interaction --prefer-dist --no-dev
+          php bin/nexus about
