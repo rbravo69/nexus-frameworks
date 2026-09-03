@@ -31,8 +31,33 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Run quality suite
+      - name: Run tests and static analysis
         run: composer quality
 
       - name: Benchmark smoke test
         run: php bin/nexus benchmark --iterations=20 --warmup=2
+
+  standards:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer metadata
+        run: composer validate --strict
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Enforce PER-CS coding standards
+        run: composer cs:check
+
+      - name: Audit dependencies
+        run: composer audit --no-interaction
