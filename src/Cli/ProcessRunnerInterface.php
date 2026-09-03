@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Nexus\Cli;
 
-interface ProcessRunnerInterface
+use Nexus\Contracts\ProcessRunnerInterface as BaseProcessRunnerInterface;
+
+/** @deprecated Use Nexus\Contracts\ProcessRunnerInterface. */
+interface ProcessRunnerInterface extends BaseProcessRunnerInterface
 {
-    /** @param non-empty-list<string> $command */
-    public function run(array $command, string $workingDirectory): int;
 }
