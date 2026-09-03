@@ -43,7 +43,7 @@ final class ConnectionFactoryTest extends TestCase
         ));
 
         self::assertSame(
-            'sqlsrv:Server=127.0.0.1,1433;Database=nexus;Encrypt=yes;TrustServerCertificate=yes',
+            'sqlsrv:Server=127.0.0.1,1433;Database=nexus;Encrypt=1;TrustServerCertificate=1',
             $dsn,
         );
     }
