@@ -11,13 +11,14 @@ RC-07 turns Nexus quality expectations into reproducible local and CI gates.
 
 ## Coding standard
 
-Nexus uses PHP-CS-Fixer with PER-CS 2.0 as the baseline plus a small set of deterministic rules:
+Nexus uses PHP-CS-Fixer with the current `@PER-CS2x0` rule set as the baseline. A few explicit compatibility overrides preserve established Nexus formatting instead of creating a repository-wide mechanical rewrite:
 
-- short array syntax;
-- strict types declarations;
-- removal of unused imports;
-- alphabetically ordered imports;
-- single-quoted strings when semantics allow it.
+- empty bodies remain multiline;
+- short arrow functions keep one space before `(`;
+- anonymous-class constructor arguments keep the existing spacing;
+- heredoc arguments are not forced to gain trailing commas.
+
+Strict type declarations remain enforced.
 
 Commands:
 
@@ -31,10 +32,10 @@ composer cs:fix
 ## Dependency audit
 
 ```bash
-composer audit --no-interaction
+composer security:audit
 ```
 
-The audit includes installed production and development dependencies. A reported security advisory fails the standards job.
+The script delegates to Composer's native `audit --no-interaction` command. The audit includes installed production and development dependencies. A reported security advisory fails the standards job.
 
 ## Quality scripts
 
