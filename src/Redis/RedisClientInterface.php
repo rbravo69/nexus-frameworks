@@ -14,7 +14,7 @@ interface RedisClientInterface
 
     public function exists(string $key): bool;
 
-    public function clear(): void;
+    public function deleteByPrefix(string $prefix): void;
 
     public function acquireLock(string $key, string $token, int $ttlMilliseconds): bool;
 
