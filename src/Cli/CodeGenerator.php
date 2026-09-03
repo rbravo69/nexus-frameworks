@@ -19,8 +19,7 @@ final readonly class CodeGenerator
         string $projectPath,
         ModuleArchitecture $architecture = ModuleArchitecture::Minimal,
         array $dependencies = [],
-    ): string
-    {
+    ): string {
         return (new ModuleScaffolder($this->filesystem))->generate(
             $name,
             $projectPath,
