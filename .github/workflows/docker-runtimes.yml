@@ -1,0 +1,37 @@
+name: Docker Runtimes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [frankenphp, php-fpm-nginx, roadrunner, openswoole]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist
+      - name: Generate production stack
+        run: php tests/integration/docker-generate.php "${{ matrix.runtime }}" "build/${{ matrix.runtime }}" production
+      - name: Validate compose
+        working-directory: build/${{ matrix.runtime }}
+        run: docker compose config --quiet
+      - name: Build PHP runtime
+        working-directory: build/${{ matrix.runtime }}
+        run: docker build -f docker/php/Dockerfile .
+      - name: Build Nginx runtime
+        if: matrix.runtime == 'php-fpm-nginx'
+        working-directory: build/${{ matrix.runtime }}
+        run: docker build -f docker/nginx/Dockerfile .

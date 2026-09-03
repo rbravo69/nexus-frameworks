@@ -38,14 +38,55 @@ final class DockerComposeGeneratorTest extends TestCase
         }
     }
 
-    public function testSupportsSelectableRuntimes(): void
+    public function testEachRuntimeGeneratesItsRealRuntimeArtifacts(): void
     {
         $generator = new DockerComposeGenerator();
 
-        foreach (DockerRuntime::cases() as $runtime) {
-            $files = $generator->files(new DockerConfig($runtime));
-            self::assertArrayHasKey('docker/php/Dockerfile', $files);
-            self::assertNotSame('', trim($files['docker/php/Dockerfile']));
-        }
+        $franken = $generator->files(new DockerConfig(DockerRuntime::FrankenPhp));
+        self::assertArrayHasKey('docker/frankenphp/Caddyfile', $franken);
+        self::assertStringContainsString('frankenphp', $franken['docker/php/Dockerfile']);
+
+        $fpm = $generator->files(new DockerConfig(DockerRuntime::PhpFpmNginx));
+        self::assertArrayHasKey('docker/nginx/default.conf', $fpm);
+        self::assertArrayHasKey('docker/nginx/Dockerfile', $fpm);
+        self::assertStringContainsString('fastcgi_pass app:9000', $fpm['docker/nginx/default.conf']);
+        self::assertStringContainsString('nginx:', $fpm['compose.yaml']);
+
+        $roadRunner = $generator->files(new DockerConfig(DockerRuntime::RoadRunner));
+        self::assertArrayHasKey('docker/roadrunner/.rr.yaml', $roadRunner);
+        self::assertArrayHasKey('docker/roadrunner/worker.php', $roadRunner);
+        self::assertStringContainsString('/usr/bin/rr', $roadRunner['docker/php/Dockerfile']);
+        self::assertStringContainsString('rr", "serve', $roadRunner['docker/php/Dockerfile']);
+
+        $swoole = $generator->files(new DockerConfig(DockerRuntime::OpenSwoole));
+        self::assertArrayHasKey('docker/openswoole/server.php', $swoole);
+        self::assertStringContainsString('pecl install openswoole', $swoole['docker/php/Dockerfile']);
+        self::assertStringContainsString('new Server', $swoole['docker/openswoole/server.php']);
+    }
+
+    public function testProductionRemovesDevelopmentBindMountsAndDatabaseHostPorts(): void
+    {
+        $compose = (new DockerComposeGenerator())->compose(new DockerConfig(
+            DockerRuntime::FrankenPhp,
+            [DockerService::Postgres, DockerService::Redis],
+            true,
+        ));
+
+        self::assertStringNotContainsString('- .:/app', $compose);
+        self::assertStringNotContainsString('127.0.0.1:5432:5432', $compose);
+        self::assertStringNotContainsString('127.0.0.1:6379:6379', $compose);
+        self::assertStringContainsString('APP_ENV: production', $compose);
+        self::assertStringContainsString('restart: unless-stopped', $compose);
+    }
+
+    public function testDevelopmentInfrastructurePortsBindOnlyToLoopback(): void
+    {
+        $compose = (new DockerComposeGenerator())->compose(new DockerConfig(
+            DockerRuntime::FrankenPhp,
+            [DockerService::Postgres, DockerService::Redis],
+        ));
+
+        self::assertStringContainsString('127.0.0.1:5432:5432', $compose);
+        self::assertStringContainsString('127.0.0.1:6379:6379', $compose);
     }
 }
