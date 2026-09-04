@@ -27,6 +27,7 @@ use Nexus\Validation\FormValidator;
 use Nexus\Validation\Validator;
 use Nexus\View\ViewFactory;
 use Nexus\View\WebViewContext;
+use Nexus\View\WebViewFeedback;
 
 final class Bootstrap
 {
@@ -113,7 +114,8 @@ final class Bootstrap
         $csrf = new CsrfTokenManager($session);
         $auth = new AuthManager($session, new ContainerUserProvider($application->container()));
         $formValidator = new FormValidator(new Validator(), $session);
-        $context = new WebViewContext($assets, $csrf, $session, $auth);
+        $feedback = new WebViewFeedback($session);
+        $context = new WebViewContext($assets, $csrf, $session, $auth, $feedback);
         $frameworkViews = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views';
 
         $application->container()
@@ -123,6 +125,7 @@ final class Bootstrap
             ->instance(CsrfTokenManager::class, $csrf)
             ->instance(AuthManager::class, $auth)
             ->instance(FormValidator::class, $formValidator)
+            ->instance(WebViewFeedback::class, $feedback)
             ->instance(WebViewContext::class, $context);
 
         ViewFactory::register(

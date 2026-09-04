@@ -165,7 +165,28 @@ actually used or `SessionMiddleware` begins a web request.
 Flash values are intended for the next request:
 
 ```php
-$session->flash('success', 'Saved successfully.');
+return redirect('/profile')
+    ->with('success', 'Saved successfully.');
+```
+
+Inside a view, use the convenience helpers instead of reading session internals.
+
+Twig:
+
+```twig
+{% if has_flash('success') %}
+    <div class="alert alert-success">{{ flash('success') }}</div>
+{% endif %}
+```
+
+PHP Native:
+
+```php
+<?php if ($has_flash('success')): ?>
+    <div class="alert alert-success">
+        <?= htmlspecialchars((string) $flash('success')) ?>
+    </div>
+<?php endif; ?>
 ```
 
 `Router::web()` applies `SessionMiddleware` automatically. Manual route groups
@@ -210,17 +231,51 @@ $validated = $forms->validate($request, [
 
 Sensitive keys such as CSRF tokens and passwords are not kept as old input.
 
-Twig helpers:
+Twig has focused helpers for the common cases:
 
 ```twig
 <input name="email" value="{{ old('email') }}">
-{% if error('email') %}
+
+{% if has_error('email') %}
     <p>{{ error('email') }}</p>
+{% endif %}
+
+{% for message in error_messages('email') %}
+    <p>{{ message }}</p>
+{% endfor %}
+
+{% if any_errors() %}
+    <p>Please review the form.</p>
 {% endif %}
 ```
 
-PHP Native views receive `$old` and `$errors` callables through the shared view
-context.
+The complete normalized validation bag remains available through `errors()`.
+
+PHP Native receives equivalent callables through the shared view context:
+
+```php
+<input name="email" value="<?= htmlspecialchars((string) $old('email')) ?>">
+
+<?php if ($has_error('email')): ?>
+    <p><?= htmlspecialchars((string) $error('email')) ?></p>
+<?php endif; ?>
+```
+
+Available feedback helpers are:
+
+```text
+old(key, default)
+errors()
+error(key, default)
+error_messages(key)
+has_error(key)
+any_errors()
+flash(key, default)
+has_flash(key)
+```
+
+`WebViewFeedback` is also registered in the container for applications that
+prefer explicit constructor injection over template callables.
 
 ## Web authentication
 
@@ -263,4 +318,4 @@ These features follow the same Nexus rules as the rest of the framework:
 - PHP Native remains dependency-free;
 - Twig remains optional;
 - the application owns persistence and user-provider decisions;
-- helpers return explicit value objects rather than hiding a global container.
+- helpers expose explicit view state without hiding a global container.
