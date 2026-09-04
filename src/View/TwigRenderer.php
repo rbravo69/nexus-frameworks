@@ -68,6 +68,11 @@ final readonly class TwigRenderer implements ViewRendererInterface
             fn (string $entry): string => $context->assets()->url($entry),
         ));
         $this->twig->addFunction(new TwigFunction(
+            'vite',
+            fn (string|array $entries): string => $context->assets()->tags($entries),
+            ['is_safe' => ['html']],
+        ));
+        $this->twig->addFunction(new TwigFunction(
             'csrf_token',
             fn (): string => $context->csrf()->token(),
         ));
