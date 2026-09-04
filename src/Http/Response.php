@@ -7,7 +7,7 @@ namespace Nexus\Http;
 use Closure;
 use JsonException;
 
-final class Response
+class Response
 {
     /**
      * @param array<string, string> $headers
@@ -36,13 +36,9 @@ final class Response
     }
 
     /** @param array<string, string> $headers */
-    public static function redirect(string $location, int $status = 302, array $headers = []): self
+    public static function redirect(string $location, int $status = 302, array $headers = []): RedirectResponse
     {
-        if ($location === '') {
-            throw new \InvalidArgumentException('Redirect location cannot be empty.');
-        }
-
-        return new self($status, ['location' => $location, ...$headers]);
+        return RedirectResponse::to($location, $status, $headers);
     }
 
     /**

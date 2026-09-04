@@ -3,6 +3,61 @@
 Nexus keeps server-rendered web features optional. They are registered only when
 a project selects the Twig or PHP Native frontend renderer.
 
+## Web route group
+
+Normal browser routes can be grouped with `Router::web()`. Nexus applies the
+standard server-rendered middleware stack automatically:
+
+```text
+SessionMiddleware
+CsrfMiddleware
+```
+
+Example:
+
+```php
+$router->web(function (Router $router): void {
+    $router->get('/', [HomeController::class, 'index']);
+    $router->post('/profile', [ProfileController::class, 'update']);
+});
+```
+
+An optional prefix can be supplied as the second argument:
+
+```php
+$router->web(function (Router $router): void {
+    $router->get('/dashboard', [AdminController::class, 'index']);
+}, '/admin');
+```
+
+`Router::web()` is intended for Twig/PHP Native monolith routes. API routes stay
+free of sessions and CSRF unless the application adds those concerns explicitly.
+
+## Redirect responses
+
+Redirects are first-class responses and may carry flash data for the next web
+request:
+
+```php
+use function Nexus\redirect;
+
+return redirect('/dashboard')
+    ->with('success', 'Profile saved.');
+```
+
+`SessionMiddleware` persists flash values from `RedirectResponse` automatically.
+Redirecting back to the referring page is explicit and request-aware:
+
+```php
+use function Nexus\redirect_back;
+
+return redirect_back($request, '/fallback')
+    ->with('error', 'Please review the form.');
+```
+
+`Response::redirect()` remains available and now returns the same
+`RedirectResponse` type, so existing code remains compatible.
+
 ## Returning views from controllers and routes
 
 Nexus exposes a small stateless helper:
@@ -113,13 +168,13 @@ Flash values are intended for the next request:
 $session->flash('success', 'Saved successfully.');
 ```
 
-Use `SessionMiddleware` on routes that need request-level session lifecycle and
-flash aging.
+`Router::web()` applies `SessionMiddleware` automatically. Manual route groups
+may still use it directly when an application needs a custom stack.
 
 ## CSRF
 
 `CsrfTokenManager` stores a cryptographically random token in the session.
-Unsafe form requests can be protected with `CsrfMiddleware`.
+Unsafe form requests are protected automatically inside `Router::web()` groups.
 
 Twig:
 
@@ -139,9 +194,6 @@ PHP Native:
 
 The middleware accepts the `_token` form field or the `X-CSRF-TOKEN` header.
 GET, HEAD, OPTIONS and TRACE are treated as safe methods.
-
-For normal form routes, place `SessionMiddleware` before `CsrfMiddleware` so the
-CSRF manager can use the active session.
 
 ## Form validation and old input
 
@@ -194,7 +246,7 @@ if ($auth->attempt([
     'email' => $request->input('email'),
     'password' => $request->input('password'),
 ])) {
-    return Response::redirect('/dashboard');
+    return redirect('/dashboard');
 }
 ```
 
