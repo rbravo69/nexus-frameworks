@@ -61,6 +61,8 @@ final readonly class TwigRenderer implements ViewRendererInterface
 
     private function registerWebFunctions(WebViewContext $context): void
     {
+        $feedback = $context->feedback();
+
         $this->twig->addFunction(new TwigFunction(
             'asset',
             fn (string $entry): string => $context->assets()->url($entry),
@@ -76,34 +78,35 @@ final readonly class TwigRenderer implements ViewRendererInterface
         ));
         $this->twig->addFunction(new TwigFunction(
             'old',
-            static function (string $key, mixed $default = null) use ($context): mixed {
-                $old = $context->session()->get('_old_input', []);
-
-                return is_array($old) ? ($old[$key] ?? $default) : $default;
-            },
+            fn (string $key, mixed $default = null): mixed => $feedback->old($key, $default),
         ));
         $this->twig->addFunction(new TwigFunction(
             'errors',
-            static function () use ($context): array {
-                $errors = $context->session()->get('_errors', []);
-
-                return is_array($errors) ? $errors : [];
-            },
+            fn (): array => $feedback->errors(),
         ));
         $this->twig->addFunction(new TwigFunction(
             'error',
-            static function (string $key) use ($context): ?string {
-                $errors = $context->session()->get('_errors', []);
-                $messages = is_array($errors) ? ($errors[$key] ?? []) : [];
-
-                return is_array($messages) && isset($messages[0]) && is_string($messages[0])
-                    ? $messages[0]
-                    : null;
-            },
+            fn (string $key, ?string $default = null): ?string => $feedback->error($key, $default),
+        ));
+        $this->twig->addFunction(new TwigFunction(
+            'error_messages',
+            fn (string $key): array => $feedback->errorMessages($key),
+        ));
+        $this->twig->addFunction(new TwigFunction(
+            'has_error',
+            fn (string $key): bool => $feedback->hasError($key),
+        ));
+        $this->twig->addFunction(new TwigFunction(
+            'any_errors',
+            fn (): bool => $feedback->anyErrors(),
         ));
         $this->twig->addFunction(new TwigFunction(
             'flash',
-            fn (string $key, mixed $default = null): mixed => $context->session()->get($key, $default),
+            fn (string $key, mixed $default = null): mixed => $feedback->flash($key, $default),
+        ));
+        $this->twig->addFunction(new TwigFunction(
+            'has_flash',
+            fn (string $key): bool => $feedback->hasFlash($key),
         ));
         $this->twig->addFunction(new TwigFunction(
             'auth',
