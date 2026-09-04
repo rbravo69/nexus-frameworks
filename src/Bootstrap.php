@@ -17,6 +17,7 @@ use Nexus\Contracts\KernelInterface;
 use Nexus\Contracts\LifecycleInterface;
 use Nexus\Lifecycle\Lifecycle;
 use Nexus\Module\ModuleRegistry;
+use Nexus\View\ViewFactory;
 
 final class Bootstrap
 {
@@ -67,12 +68,43 @@ final class Bootstrap
             ->instance(Application::class, $application)
             ->instance(KernelInterface::class, $application);
 
+        self::registerViewRuntime($application, $runtimeEnvironment, $configuration);
+
         (new CapabilityLoader(
             new CapabilityResolver($capabilityCatalog),
             $container,
         ))->load(new CapabilityManifest($basePath), $capabilities);
 
         return $application;
+    }
+
+    private static function registerViewRuntime(
+        Application $application,
+        Environment $environment,
+        ConfigurationInterface $configuration,
+    ): void {
+        $renderer = $configuration->get('frontend.renderer');
+
+        if (!is_string($renderer) || !in_array($renderer, ['twig', 'php'], true)) {
+            return;
+        }
+
+        $viewsPath = $configuration->get('frontend.views_path');
+        $cachePath = $configuration->get('frontend.cache_path');
+
+        ViewFactory::register(
+            application: $application,
+            renderer: $renderer,
+            viewsPath: is_string($viewsPath) && $viewsPath !== ''
+                ? $viewsPath
+                : $environment->path('resources/views'),
+            cachePath: $renderer === 'twig'
+                ? (is_string($cachePath) && $cachePath !== ''
+                    ? $cachePath
+                    : $environment->path('.nexus/cache/twig'))
+                : null,
+            debug: $environment->debug,
+        );
     }
 
     private static function environmentVariable(string $key, string $default): string
