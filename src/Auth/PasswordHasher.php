@@ -13,13 +13,7 @@ final readonly class PasswordHasher
             throw new \InvalidArgumentException('Password cannot be empty.');
         }
 
-        $hash = password_hash($password, $algorithm, $options);
-
-        if (!is_string($hash)) {
-            throw new \RuntimeException('Unable to hash password.');
-        }
-
-        return $hash;
+        return password_hash($password, $algorithm, $options);
     }
 
     public function verify(string $password, string $hash): bool
