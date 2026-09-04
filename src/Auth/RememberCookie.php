@@ -25,12 +25,12 @@ final readonly class RememberCookie
 
     public function attach(Response $response, string $token): Response
     {
-        return $response->withHeader('Set-Cookie', $this->cookie($token, $this->ttlDays * 86400)->toHeader());
+        return $response->withCookie($this->cookie($token, $this->ttlDays * 86400));
     }
 
     public function forget(Response $response): Response
     {
-        return $response->withHeader('Set-Cookie', Cookie::forget($this->name)->toHeader());
+        return $response->withCookie(Cookie::forget($this->name));
     }
 
     private function cookie(string $value, int $maxAge): Cookie
