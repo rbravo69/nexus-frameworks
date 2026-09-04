@@ -55,7 +55,7 @@ final readonly class RememberMeManager
 
     public function forget(string $token): void
     {
-        $selector = explode(':', $token, 2)[0] ?? '';
+        $selector = explode(':', $token, 2)[0];
 
         if ($selector !== '') {
             $this->tokens->delete($selector);
