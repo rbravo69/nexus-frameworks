@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Nexus;
 
+use Nexus\Assets\AssetManager;
+use Nexus\Auth\AuthManager;
+use Nexus\Auth\ContainerUserProvider;
 use Nexus\Capability\CapabilityCatalog;
 use Nexus\Capability\CapabilityLoader;
 use Nexus\Capability\CapabilityManifest;
@@ -17,7 +20,13 @@ use Nexus\Contracts\KernelInterface;
 use Nexus\Contracts\LifecycleInterface;
 use Nexus\Lifecycle\Lifecycle;
 use Nexus\Module\ModuleRegistry;
+use Nexus\Security\CsrfTokenManager;
+use Nexus\Session\NativeSession;
+use Nexus\Session\SessionInterface;
+use Nexus\Validation\FormValidator;
+use Nexus\Validation\Validator;
 use Nexus\View\ViewFactory;
+use Nexus\View\WebViewContext;
 
 final class Bootstrap
 {
@@ -91,6 +100,29 @@ final class Bootstrap
 
         $viewsPath = $configuration->get('frontend.views_path');
         $cachePath = $configuration->get('frontend.cache_path');
+        $sessionName = $configuration->get('session.name', 'NEXUSSESSID');
+        $sameSite = $configuration->get('session.same_site', 'Lax');
+        $secure = $configuration->get('session.secure', false);
+
+        $session = new NativeSession(
+            name: is_string($sessionName) && $sessionName !== '' ? $sessionName : 'NEXUSSESSID',
+            cookieSecure: is_bool($secure) ? $secure : false,
+            sameSite: is_string($sameSite) && $sameSite !== '' ? $sameSite : 'Lax',
+        );
+        $assets = new AssetManager($environment->basePath);
+        $csrf = new CsrfTokenManager($session);
+        $auth = new AuthManager($session, new ContainerUserProvider($application->container()));
+        $formValidator = new FormValidator(new Validator(), $session);
+        $context = new WebViewContext($assets, $csrf, $session, $auth);
+
+        $application->container()
+            ->instance(SessionInterface::class, $session)
+            ->instance(NativeSession::class, $session)
+            ->instance(AssetManager::class, $assets)
+            ->instance(CsrfTokenManager::class, $csrf)
+            ->instance(AuthManager::class, $auth)
+            ->instance(FormValidator::class, $formValidator)
+            ->instance(WebViewContext::class, $context);
 
         ViewFactory::register(
             application: $application,
@@ -104,6 +136,7 @@ final class Bootstrap
                     : $environment->path('.nexus/cache/twig'))
                 : null,
             debug: $environment->debug,
+            context: $context,
         );
     }
 
