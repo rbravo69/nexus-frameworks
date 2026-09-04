@@ -232,7 +232,7 @@ final class WebRuntimeTest extends TestCase
 
 final readonly class FakeUser implements AuthenticatableInterface
 {
-    public function authIdentifier(): int|string
+    public function authIdentifier(): int
     {
         return 7;
     }
