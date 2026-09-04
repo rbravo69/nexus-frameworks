@@ -27,7 +27,7 @@ final class NativeSession implements SessionInterface
         session_set_cookie_params([
             'httponly' => true,
             'secure' => $this->cookieSecure,
-            'samesite' => $this->sameSite,
+            'samesite' => $this->normalizedSameSite(),
         ]);
 
         if (!session_start()) {
@@ -118,6 +118,16 @@ final class NativeSession implements SessionInterface
         }
 
         return $data;
+    }
+
+    /** @return 'Lax'|'None'|'Strict' */
+    private function normalizedSameSite(): string
+    {
+        return match (strtolower($this->sameSite)) {
+            'none' => 'None',
+            'strict' => 'Strict',
+            default => 'Lax',
+        };
     }
 
     /** @return list<string> */
