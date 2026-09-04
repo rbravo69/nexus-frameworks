@@ -7,13 +7,12 @@ namespace Nexus\Routing;
 use Closure;
 use Nexus\Http\MiddlewareInterface;
 use Nexus\Http\Request;
-use Nexus\Http\Response;
 
 final class Route
 {
     /**
      * @param list<string> $methods
-     * @param Closure(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} $handler
+     * @param Closure(Request, array<string, string>): mixed|array{class-string<object>, non-empty-string} $handler
      * @param list<class-string<MiddlewareInterface>> $middleware
      */
     public function __construct(
@@ -43,7 +42,7 @@ final class Route
         return $this->path;
     }
 
-    /** @return Closure(Request, array<string, string>): Response|array{class-string<object>, non-empty-string} */
+    /** @return Closure(Request, array<string, string>): mixed|array{class-string<object>, non-empty-string} */
     public function handler(): Closure|array
     {
         return $this->handler;
