@@ -35,6 +35,16 @@ final class Response
         return new self($status, ['content-type' => 'text/html; charset=utf-8', ...$headers], $body);
     }
 
+    /** @param array<string, string> $headers */
+    public static function redirect(string $location, int $status = 302, array $headers = []): self
+    {
+        if ($location === '') {
+            throw new \InvalidArgumentException('Redirect location cannot be empty.');
+        }
+
+        return new self($status, ['location' => $location, ...$headers]);
+    }
+
     /**
      * @param array<string, string> $headers
      * @throws JsonException

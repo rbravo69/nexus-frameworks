@@ -8,13 +8,19 @@ use Nexus\Http\Response;
 
 final readonly class View
 {
-    public function __construct(private ViewRendererInterface $renderer)
-    {
+    public function __construct(
+        private ViewRendererInterface $renderer,
+        private ?WebViewContext $context = null,
+    ) {
     }
 
     /** @param array<string, mixed> $data */
     public function render(string $name, array $data = []): string
     {
+        if ($this->context !== null) {
+            $data = array_replace($this->context->data(), $data);
+        }
+
         return $this->renderer->render($name, $data);
     }
 

@@ -9,7 +9,6 @@ use Nexus\Exception\MethodNotAllowedException;
 use Nexus\Exception\RouteNotFoundException;
 use Nexus\Http\MiddlewareInterface;
 use Nexus\Http\Request;
-use Nexus\Http\Response;
 
 final class Router
 {
@@ -21,7 +20,7 @@ final class Router
 
     /**
      * @param string|list<string> $methods
-     * @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler
+     * @param (callable(Request, array<string, string>): mixed)|array{class-string<object>, non-empty-string} $handler
      * @param list<class-string<MiddlewareInterface>> $middleware
      */
     public function add(
@@ -54,31 +53,31 @@ final class Router
         return $route;
     }
 
-    /** @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler */
+    /** @param (callable(Request, array<string, string>): mixed)|array{class-string<object>, non-empty-string} $handler */
     public function get(string $path, mixed $handler): Route
     {
         return $this->add('GET', $path, $handler);
     }
 
-    /** @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler */
+    /** @param (callable(Request, array<string, string>): mixed)|array{class-string<object>, non-empty-string} $handler */
     public function post(string $path, mixed $handler): Route
     {
         return $this->add('POST', $path, $handler);
     }
 
-    /** @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler */
+    /** @param (callable(Request, array<string, string>): mixed)|array{class-string<object>, non-empty-string} $handler */
     public function put(string $path, mixed $handler): Route
     {
         return $this->add('PUT', $path, $handler);
     }
 
-    /** @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler */
+    /** @param (callable(Request, array<string, string>): mixed)|array{class-string<object>, non-empty-string} $handler */
     public function patch(string $path, mixed $handler): Route
     {
         return $this->add('PATCH', $path, $handler);
     }
 
-    /** @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler */
+    /** @param (callable(Request, array<string, string>): mixed)|array{class-string<object>, non-empty-string} $handler */
     public function delete(string $path, mixed $handler): Route
     {
         return $this->add('DELETE', $path, $handler);
@@ -137,8 +136,8 @@ final class Router
     }
 
     /**
-     * @param (callable(Request, array<string, string>): Response)|array{class-string<object>, non-empty-string} $handler
-     * @return Closure(Request, array<string, string>): Response|array{class-string<object>, non-empty-string}
+     * @param (callable(Request, array<string, string>): mixed)|array{class-string<object>, non-empty-string} $handler
+     * @return Closure(Request, array<string, string>): mixed|array{class-string<object>, non-empty-string}
      */
     private function normalizeHandler(mixed $handler): Closure|array
     {

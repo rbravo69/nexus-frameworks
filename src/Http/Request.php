@@ -28,14 +28,17 @@ final class Request
         $method = is_string($methodValue) ? strtoupper($methodValue) : 'GET';
         $uri = is_string($uriValue) ? $uriValue : '/';
         $path = parse_url($uri, PHP_URL_PATH);
-        $body = file_get_contents('php://input');
+        $rawBody = file_get_contents('php://input');
+        $body = $_POST !== []
+            ? self::queryFromGlobals($_POST)
+            : ($rawBody !== false && $rawBody !== '' ? $rawBody : null);
 
         return new self(
             $method,
             is_string($path) && $path !== '' ? $path : '/',
             self::headersFromServer($_SERVER),
             self::queryFromGlobals($_GET),
-            $body !== false && $body !== '' ? $body : null,
+            $body,
         );
     }
 
@@ -79,6 +82,27 @@ final class Request
         return $this->body;
     }
 
+    /**
+     * @return ($key is null ? array<string, mixed> : mixed)
+     */
+    public function input(?string $key = null, mixed $default = null): mixed
+    {
+        $input = array_replace($this->query, $this->parsedBody());
+
+        if ($key === null) {
+            return $input;
+        }
+
+        return $input[$key] ?? $default;
+    }
+
+    public function acceptsHtml(): bool
+    {
+        $accept = $this->header('Accept', '');
+
+        return is_string($accept) && str_contains(strtolower($accept), 'text/html');
+    }
+
     public function attribute(string $name, mixed $default = null): mixed
     {
         return $this->attributes[$name] ?? $default;
@@ -112,6 +136,38 @@ final class Request
         );
     }
 
+    /** @return array<string, mixed> */
+    private function parsedBody(): array
+    {
+        if (is_array($this->body)) {
+            return self::queryFromGlobals($this->body);
+        }
+
+        if (!is_string($this->body) || $this->body === '') {
+            return [];
+        }
+
+        $contentType = strtolower((string) $this->header('Content-Type', ''));
+
+        if (str_contains($contentType, 'application/json')) {
+            $decoded = json_decode($this->body, true);
+
+            if (is_array($decoded)) {
+                return self::queryFromGlobals($decoded);
+            }
+
+            return [];
+        }
+
+        if (str_contains($contentType, 'application/x-www-form-urlencoded')) {
+            parse_str($this->body, $parsed);
+
+            return self::queryFromGlobals($parsed);
+        }
+
+        return [];
+    }
+
     /**
      * @param array<array-key, mixed> $server
      * @return array<string, string>
@@ -128,6 +184,14 @@ final class Request
             if (str_starts_with($key, 'HTTP_')) {
                 $name = str_replace('_', '-', substr($key, 5));
                 $headers[$name] = (string) $value;
+            }
+        }
+
+        foreach (['CONTENT_TYPE' => 'CONTENT-TYPE', 'CONTENT_LENGTH' => 'CONTENT-LENGTH'] as $serverKey => $header) {
+            $value = $server[$serverKey] ?? null;
+
+            if (is_scalar($value)) {
+                $headers[$header] = (string) $value;
             }
         }
 

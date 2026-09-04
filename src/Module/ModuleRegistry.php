@@ -7,6 +7,9 @@ namespace Nexus\Module;
 use Nexus\Application;
 use Nexus\Contracts\ModuleInterface;
 use Nexus\Exception\DuplicateModuleException;
+use Nexus\View\TwigRenderer;
+use Nexus\View\ViewFinder;
+use Nexus\View\ViewRendererInterface;
 
 final class ModuleRegistry
 {
@@ -63,6 +66,7 @@ final class ModuleRegistry
 
         foreach ($this->executionOrder as $module) {
             $module->register($application);
+            $this->registerViewNamespace($application, $module);
         }
     }
 
@@ -85,5 +89,45 @@ final class ModuleRegistry
     {
         return $this->executionOrder
             ?? (new ModuleDependencyResolver())->resolve($this->modules);
+    }
+
+    private function registerViewNamespace(Application $application, ModuleInterface $module): void
+    {
+        $container = $application->container();
+
+        if (!$container->has(ViewRendererInterface::class)) {
+            return;
+        }
+
+        $finder = $container->get(ViewFinder::class);
+        $renderer = $container->get(ViewRendererInterface::class);
+
+        if (!$finder instanceof ViewFinder || !$renderer instanceof ViewRendererInterface) {
+            return;
+        }
+
+        $name = trim($module->name());
+        $namespace = strtolower(preg_replace('/[^A-Za-z0-9]+/', '', $name) ?? $name);
+        $studly = implode('', array_map(
+            static fn (string $part): string => ucfirst(strtolower($part)),
+            preg_split('/[^A-Za-z0-9]+/', $name, -1, PREG_SPLIT_NO_EMPTY) ?: [$name],
+        ));
+
+        $paths = array_unique([
+            $application->environment()->path('modules/' . $studly . '/Views'),
+            $application->environment()->path('modules/' . $name . '/Views'),
+        ]);
+
+        foreach ($paths as $path) {
+            if (!is_dir($path)) {
+                continue;
+            }
+
+            $finder->addNamespace($namespace, $path);
+
+            if ($renderer instanceof TwigRenderer) {
+                $renderer->addNamespace($namespace, $path);
+            }
+        }
     }
 }

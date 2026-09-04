@@ -240,9 +240,60 @@ PHP
         ];
 
         if ($frontend->renderer === FrontendRenderer::Twig) {
-            $files['resources/views/home.twig'] = "<!doctype html>\n<html lang=\"en\">\n<head><meta charset=\"utf-8\"><title>Nexus</title></head>\n<body><main><h1>Nexus + Twig</h1></main></body>\n</html>\n";
+            $files['resources/views/layouts/app.twig'] = <<<'TWIG'
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Nexus{% endblock %}</title>
+</head>
+<body>
+{% include 'partials/navigation.twig' %}
+{% block content %}{% endblock %}
+</body>
+</html>
+TWIG
+            . PHP_EOL;
+            $files['resources/views/partials/navigation.twig'] = "<nav><a href=\"/\">Nexus</a></nav>\n";
+            $files['resources/views/components/welcome.twig'] = "<main><h1>Nexus + Twig</h1></main>\n";
+            $files['resources/views/home.twig'] = <<<'TWIG'
+{% extends 'layouts/app.twig' %}
+
+{% block title %}Home · Nexus{% endblock %}
+
+{% block content %}
+    {% include 'components/welcome.twig' %}
+{% endblock %}
+TWIG
+            . PHP_EOL;
         } elseif ($frontend->renderer === FrontendRenderer::Php) {
-            $files['resources/views/home.php'] = "<!doctype html>\n<html lang=\"en\">\n<head><meta charset=\"utf-8\"><title>Nexus</title></head>\n<body><main><h1>Nexus + PHP Native</h1></main></body>\n</html>\n";
+            $files['resources/views/layouts/app.php'] = <<<'PHP'
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?= htmlspecialchars((string) ($title ?? 'Nexus'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></title>
+</head>
+<body>
+<?php require dirname(__DIR__) . '/partials/navigation.php'; ?>
+<?= $content ?? '' ?>
+</body>
+</html>
+PHP
+            . PHP_EOL;
+            $files['resources/views/partials/navigation.php'] = "<nav><a href=\"/\">Nexus</a></nav>\n";
+            $files['resources/views/components/welcome.php'] = "<main><h1>Nexus + PHP Native</h1></main>\n";
+            $files['resources/views/home.php'] = <<<'PHP'
+<?php
+ob_start();
+require __DIR__ . '/components/welcome.php';
+$content = ob_get_clean();
+$title = 'Home · Nexus';
+require __DIR__ . '/layouts/app.php';
+PHP
+            . PHP_EOL;
         }
 
         $package = $this->packageJson($frontend);

@@ -70,9 +70,16 @@ final class ProjectGeneratorTest extends TestCase
         );
 
         self::assertFileExists($target . '/resources/views/home.twig');
+        self::assertFileExists($target . '/resources/views/layouts/app.twig');
+        self::assertFileExists($target . '/resources/views/partials/navigation.twig');
+        self::assertFileExists($target . '/resources/views/components/welcome.twig');
         self::assertFileExists($target . '/resources/frontend/app.js');
         self::assertFileExists($target . '/resources/frontend/app.css');
         self::assertFileExists($target . '/vite.config.js');
+
+        $home = (string) file_get_contents($target . '/resources/views/home.twig');
+        self::assertStringContainsString("{% extends 'layouts/app.twig' %}", $home);
+        self::assertStringContainsString("{% include 'components/welcome.twig' %}", $home);
 
         $composer = $this->jsonFile($target . '/composer.json');
         $require = $this->arrayValue($composer, 'require');
@@ -136,6 +143,9 @@ final class ProjectGeneratorTest extends TestCase
         );
 
         self::assertFileExists($target . '/resources/views/home.php');
+        self::assertFileExists($target . '/resources/views/layouts/app.php');
+        self::assertFileExists($target . '/resources/views/partials/navigation.php');
+        self::assertFileExists($target . '/resources/views/components/welcome.php');
         self::assertFileDoesNotExist($target . '/package.json');
         self::assertFileDoesNotExist($target . '/vite.config.js');
     }
