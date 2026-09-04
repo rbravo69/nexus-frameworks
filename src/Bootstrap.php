@@ -114,6 +114,7 @@ final class Bootstrap
         $auth = new AuthManager($session, new ContainerUserProvider($application->container()));
         $formValidator = new FormValidator(new Validator(), $session);
         $context = new WebViewContext($assets, $csrf, $session, $auth);
+        $frameworkViews = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views';
 
         $application->container()
             ->instance(SessionInterface::class, $session)
@@ -130,6 +131,7 @@ final class Bootstrap
             viewsPath: is_string($viewsPath) && $viewsPath !== ''
                 ? $viewsPath
                 : $environment->path('resources/views'),
+            namespaces: is_dir($frameworkViews) ? ['nexus' => $frameworkViews] : [],
             cachePath: $renderer === 'twig'
                 ? (is_string($cachePath) && $cachePath !== ''
                     ? $cachePath
