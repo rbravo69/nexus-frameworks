@@ -22,17 +22,24 @@ final readonly class WebViewContext
     /** @return array<string, mixed> */
     public function data(): array
     {
-        $old = $this->session->get('_old_input', []);
-        $errors = $this->session->get('_errors', []);
-
         return [
             'assets' => $this->assets,
             'asset' => fn (string $entry): string => $this->assets->url($entry),
             'csrf' => $this->csrf,
+            'csrf_field' => fn (): string => $this->csrf->field(),
             'session' => $this->session,
             'auth' => $this->auth,
-            'old' => is_array($old) ? $old : [],
-            'errors' => is_array($errors) ? $errors : [],
+            'old' => function (string $key, mixed $default = null): mixed {
+                $old = $this->session->get('_old_input', []);
+
+                return is_array($old) ? ($old[$key] ?? $default) : $default;
+            },
+            'errors' => function (): array {
+                $errors = $this->session->get('_errors', []);
+
+                return is_array($errors) ? $errors : [];
+            },
+            'flash' => fn (string $key, mixed $default = null): mixed => $this->session->get($key, $default),
         ];
     }
 
