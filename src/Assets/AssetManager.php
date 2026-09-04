@@ -60,9 +60,19 @@ final class AssetManager
                 continue;
             }
 
-            if (is_array($decoded)) {
-                return $this->manifest = $decoded;
+            if (!is_array($decoded)) {
+                continue;
             }
+
+            $manifest = [];
+
+            foreach ($decoded as $key => $value) {
+                if (is_string($key)) {
+                    $manifest[$key] = $value;
+                }
+            }
+
+            return $this->manifest = $manifest;
         }
 
         return $this->manifest = [];
