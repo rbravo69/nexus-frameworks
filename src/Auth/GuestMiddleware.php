@@ -11,7 +11,9 @@ use Nexus\Http\Response;
 
 final readonly class GuestMiddleware implements MiddlewareInterface
 {
-    public function __construct(private AuthManager $auth, private string $homePath = '/') {}
+    public function __construct(private AuthManager $auth, private string $homePath = '/')
+    {
+    }
 
     public function process(Request $request, RequestHandlerInterface $handler): Response
     {
