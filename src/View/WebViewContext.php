@@ -16,6 +16,7 @@ final readonly class WebViewContext
         private CsrfTokenManager $csrf,
         private SessionInterface $session,
         private AuthManager $auth,
+        private WebViewFeedback $feedback,
     ) {
     }
 
@@ -29,17 +30,14 @@ final readonly class WebViewContext
             'csrf_field' => fn (): string => $this->csrf->field(),
             'session' => $this->session,
             'auth' => $this->auth,
-            'old' => function (string $key, mixed $default = null): mixed {
-                $old = $this->session->get('_old_input', []);
-
-                return is_array($old) ? ($old[$key] ?? $default) : $default;
-            },
-            'errors' => function (): array {
-                $errors = $this->session->get('_errors', []);
-
-                return is_array($errors) ? $errors : [];
-            },
-            'flash' => fn (string $key, mixed $default = null): mixed => $this->session->get($key, $default),
+            'old' => fn (string $key, mixed $default = null): mixed => $this->feedback->old($key, $default),
+            'errors' => fn (): array => $this->feedback->errors(),
+            'error' => fn (string $key, ?string $default = null): ?string => $this->feedback->error($key, $default),
+            'error_messages' => fn (string $key): array => $this->feedback->errorMessages($key),
+            'has_error' => fn (string $key): bool => $this->feedback->hasError($key),
+            'any_errors' => fn (): bool => $this->feedback->anyErrors(),
+            'flash' => fn (string $key, mixed $default = null): mixed => $this->feedback->flash($key, $default),
+            'has_flash' => fn (string $key): bool => $this->feedback->hasFlash($key),
         ];
     }
 
@@ -61,5 +59,10 @@ final readonly class WebViewContext
     public function auth(): AuthManager
     {
         return $this->auth;
+    }
+
+    public function feedback(): WebViewFeedback
+    {
+        return $this->feedback;
     }
 }
