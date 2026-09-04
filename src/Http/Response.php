@@ -102,4 +102,9 @@ class Response
             $this->stream,
         );
     }
+
+    public function withCookie(Cookie $cookie): self
+    {
+        return $this->withHeader('Set-Cookie', $cookie->toHeader());
+    }
 }
