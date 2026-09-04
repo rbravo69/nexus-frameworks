@@ -11,7 +11,9 @@ use Nexus\Http\Response;
 
 final readonly class RoleMiddleware implements MiddlewareInterface
 {
-    public function __construct(private AuthManager $auth, private string $role) {}
+    public function __construct(private AuthManager $auth, private string $role)
+    {
+    }
 
     public function process(Request $request, RequestHandlerInterface $handler): Response
     {
