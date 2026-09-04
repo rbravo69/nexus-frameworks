@@ -4,24 +4,21 @@ declare(strict_types=1);
 
 namespace Nexus\Validation;
 
-final class FormValidationException extends \RuntimeException
+use Nexus\Exception\RedirectResponseException;
+
+final class FormValidationException extends RedirectResponseException
 {
     /** @param array<string, list<string>> $errors */
     public function __construct(
         private readonly array $errors,
-        private readonly string $redirectTo,
+        string $redirectTo,
     ) {
-        parent::__construct('The submitted form data is invalid.');
+        parent::__construct($redirectTo, 'The submitted form data is invalid.');
     }
 
     /** @return array<string, list<string>> */
     public function errors(): array
     {
         return $this->errors;
-    }
-
-    public function redirectTo(): string
-    {
-        return $this->redirectTo;
     }
 }
