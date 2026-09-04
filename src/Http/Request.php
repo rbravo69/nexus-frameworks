@@ -71,6 +71,33 @@ final class Request
         return $default;
     }
 
+    /** @return array<string, string> */
+    public function cookies(): array
+    {
+        $header = $this->header('Cookie');
+
+        if ($header === null || $header === '') {
+            return [];
+        }
+
+        $cookies = [];
+
+        foreach (explode(';', $header) as $pair) {
+            [$name, $value] = array_pad(explode('=', trim($pair), 2), 2, '');
+
+            if ($name !== '') {
+                $cookies[$name] = rawurldecode($value);
+            }
+        }
+
+        return $cookies;
+    }
+
+    public function cookie(string $name, ?string $default = null): ?string
+    {
+        return $this->cookies()[$name] ?? $default;
+    }
+
     /** @return array<string, mixed> */
     public function query(): array
     {
