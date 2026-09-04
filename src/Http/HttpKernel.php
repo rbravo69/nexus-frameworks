@@ -6,11 +6,11 @@ namespace Nexus\Http;
 
 use Nexus\Contracts\ContainerInterface;
 use Nexus\Exception\MethodNotAllowedException;
+use Nexus\Exception\RedirectResponseException;
 use Nexus\Exception\RouteNotFoundException;
 use Nexus\Routing\RouteMatch;
 use Nexus\Routing\Router;
 use Nexus\Security\CsrfTokenMismatchException;
-use Nexus\Validation\FormValidationException;
 use Nexus\View\View;
 use Nexus\View\ViewRendererInterface;
 use Nexus\View\ViewResult;
@@ -60,7 +60,7 @@ final class HttpKernel implements RequestHandlerInterface
             );
         } catch (CsrfTokenMismatchException) {
             return $this->errorResponse($request, 419, 'Page Expired');
-        } catch (FormValidationException $exception) {
+        } catch (RedirectResponseException $exception) {
             return Response::redirect($exception->redirectTo());
         } catch (Throwable $exception) {
             foreach ($this->exceptionRenderers as $renderer) {
