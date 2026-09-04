@@ -9,6 +9,7 @@ use Nexus\Exception\MethodNotAllowedException;
 use Nexus\Exception\RouteNotFoundException;
 use Nexus\Http\MiddlewareInterface;
 use Nexus\Http\Request;
+use Nexus\Http\WebMiddlewareGroup;
 
 final class Router
 {
@@ -81,6 +82,12 @@ final class Router
     public function delete(string $path, mixed $handler): Route
     {
         return $this->add('DELETE', $path, $handler);
+    }
+
+    /** @param callable(self): void $routes */
+    public function web(callable $routes, string $prefix = ''): void
+    {
+        $this->group($prefix, $routes, [WebMiddlewareGroup::class]);
     }
 
     /**
