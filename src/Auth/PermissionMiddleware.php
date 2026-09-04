@@ -11,7 +11,9 @@ use Nexus\Http\Response;
 
 final readonly class PermissionMiddleware implements MiddlewareInterface
 {
-    public function __construct(private AuthManager $auth, private string $permission) {}
+    public function __construct(private AuthManager $auth, private string $permission)
+    {
+    }
 
     public function process(Request $request, RequestHandlerInterface $handler): Response
     {
