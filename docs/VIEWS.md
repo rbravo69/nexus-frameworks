@@ -4,7 +4,36 @@ Nexus provides a small renderer-neutral view runtime for server-rendered monolit
 PHP Native is dependency-free. Twig is the recommended optional renderer and is
 installed only when the project selects it.
 
-## Register a renderer
+## Automatic registration
+
+Projects generated with `nexus new` already write the selected renderer to
+`config/frontend.php`. During bootstrap Nexus reads `frontend.renderer` and
+automatically registers the server-rendered view runtime when the value is
+`twig` or `php`.
+
+The default view root is:
+
+```text
+resources/views/
+```
+
+For Twig, the default production cache location is:
+
+```text
+.nexus/cache/twig/
+```
+
+`APP_DEBUG=true` is passed through to the Twig renderer so development uses
+Twig debug, auto-reload and strict variables. Client-side frontend selections
+such as React, Vue.js, Svelte and SolidJS do not register `ViewRendererInterface`.
+
+This means a generated Twig or PHP Native monolith does not need to call
+`ViewFactory::register()` manually.
+
+## Manual registration and overrides
+
+Applications may still register a renderer explicitly when they need custom
+paths, module namespaces or another bootstrap composition:
 
 ```php
 use Nexus\View\ViewFactory;
@@ -22,6 +51,19 @@ For PHP Native use `renderer: 'php'` and no Twig dependency is required.
 Registration binds `ViewFinder`, `ViewRendererInterface` and `View` into the
 Nexus container, so controllers and application services can request `View` by
 constructor injection.
+
+The automatic bootstrap also understands optional configuration overrides:
+
+```php
+return [
+    'renderer' => 'twig',
+    'views_path' => __DIR__ . '/../resources/views',
+    'cache_path' => __DIR__ . '/../var/cache/twig',
+];
+```
+
+Generated projects normally rely on the defaults and therefore do not need
+these extra keys.
 
 ## Render HTML
 
@@ -52,7 +94,8 @@ Global views normally live in:
 resources/views/
 ```
 
-Modules can expose their own view roots through namespaces:
+Modules can expose their own view roots through namespaces. Explicit
+registration remains available for this use case:
 
 ```php
 ViewFactory::register(
@@ -76,9 +119,9 @@ PHP Native uses the same Nexus namespace notation.
 
 ## Twig cache
 
-Pass a writable `cachePath` in production. Development can enable `debug: true`,
-which also enables Twig auto-reload and strict variables. Nexus does not force a
-cache location because deployment/runtime strategy belongs to the application.
+Automatic registration uses `.nexus/cache/twig` by default. Manual registration
+can pass another writable `cachePath`. Development can enable `debug: true`,
+which also enables Twig auto-reload and strict variables.
 
 ## Frontend assets
 
