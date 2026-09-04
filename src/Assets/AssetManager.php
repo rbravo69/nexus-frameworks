@@ -55,7 +55,7 @@ final class AssetManager
         return $devServer === null ? null : $devServer . '/@vite/client';
     }
 
-    /** @param string|list<string> $entries */
+    /** @param string|array<array-key, mixed> $entries */
     public function tags(string|array $entries): string
     {
         $entries = is_string($entries) ? [$entries] : $entries;
