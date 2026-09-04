@@ -62,6 +62,19 @@ final class AuthManager
         return true;
     }
 
+    public function loginUsingId(int|string $identifier, bool $regenerateSession = true): bool
+    {
+        $user = $this->provider->retrieveById($identifier);
+
+        if ($user === null) {
+            return false;
+        }
+
+        $this->login($user, $regenerateSession);
+
+        return true;
+    }
+
     public function login(AuthenticatableInterface $user, bool $regenerateSession = true): void
     {
         if ($regenerateSession) {
@@ -86,5 +99,25 @@ final class AuthManager
         $user = $this->user();
 
         return $user !== null && in_array($role, $user->roles(), true);
+    }
+
+    /** @param list<string> $roles */
+    public function hasAnyRole(array $roles): bool
+    {
+        $user = $this->user();
+
+        if ($user === null) {
+            return false;
+        }
+
+        return array_intersect($roles, $user->roles()) !== [];
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        $user = $this->user();
+
+        return $user instanceof AuthorizableInterface
+            && in_array($permission, $user->permissions(), true);
     }
 }

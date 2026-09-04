@@ -7,6 +7,7 @@ namespace Nexus;
 use Nexus\Assets\AssetManager;
 use Nexus\Auth\AuthManager;
 use Nexus\Auth\ContainerUserProvider;
+use Nexus\Auth\PasswordHasher;
 use Nexus\Capability\CapabilityCatalog;
 use Nexus\Capability\CapabilityLoader;
 use Nexus\Capability\CapabilityManifest;
@@ -124,6 +125,7 @@ final class Bootstrap
             ->instance(AssetManager::class, $assets)
             ->instance(CsrfTokenManager::class, $csrf)
             ->instance(AuthManager::class, $auth)
+            ->instance(PasswordHasher::class, new PasswordHasher())
             ->instance(FormValidator::class, $formValidator)
             ->instance(WebViewFeedback::class, $feedback)
             ->instance(WebViewContext::class, $context);
