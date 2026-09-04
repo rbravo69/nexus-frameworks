@@ -150,18 +150,24 @@ final class HttpKernel implements RequestHandlerInterface
         ?string $message = null,
     ): Response {
         if ($request->acceptsHtml() && $this->container->has(ViewRendererInterface::class)) {
+            $data = [
+                'status' => $status,
+                'title' => $title,
+                'message' => $message,
+            ];
+
             try {
                 $views = $this->container->get(View::class);
 
                 if ($views instanceof View) {
-                    return $views->response('errors/' . $status, [
-                        'status' => $status,
-                        'title' => $title,
-                        'message' => $message,
-                    ], $status, $headers);
+                    try {
+                        return $views->response('errors/' . $status, $data, $status, $headers);
+                    } catch (Throwable) {
+                        return $views->response('nexus::errors/error', $data, $status, $headers);
+                    }
                 }
             } catch (Throwable) {
-                // Fall back to a dependency-free HTML error below.
+                // Fall back to dependency-free HTML below.
             }
 
             $safeTitle = htmlspecialchars($title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
