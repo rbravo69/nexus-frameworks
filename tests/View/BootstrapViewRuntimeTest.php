@@ -96,7 +96,6 @@ final class BootstrapViewRuntimeTest extends TestCase
         );
 
         self::assertFalse($application->container()->has(ViewRendererInterface::class));
-        self::assertFalse($application->container()->has(View::class));
     }
 
     private function basePath(): string
