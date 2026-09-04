@@ -26,6 +26,7 @@ final readonly class WebViewContext
         return [
             'assets' => $this->assets,
             'asset' => fn (string $entry): string => $this->assets->url($entry),
+            'vite' => fn (string|array $entries): string => $this->assets->tags($entries),
             'csrf' => $this->csrf,
             'csrf_field' => fn (): string => $this->csrf->field(),
             'session' => $this->session,

@@ -23,6 +23,7 @@ use Nexus\Lifecycle\Lifecycle;
 use Nexus\Module\ModuleRegistry;
 use Nexus\Security\CsrfTokenManager;
 use Nexus\Session\NativeSession;
+use Nexus\Session\SessionFactory;
 use Nexus\Session\SessionInterface;
 use Nexus\Validation\FormValidator;
 use Nexus\Validation\Validator;
@@ -102,14 +103,16 @@ final class Bootstrap
 
         $viewsPath = $configuration->get('frontend.views_path');
         $cachePath = $configuration->get('frontend.cache_path');
-        $sessionName = $configuration->get('session.name', 'NEXUSSESSID');
-        $sameSite = $configuration->get('session.same_site', 'Lax');
-        $secure = $configuration->get('session.secure', false);
-
-        $session = new NativeSession(
-            name: is_string($sessionName) && $sessionName !== '' ? $sessionName : 'NEXUSSESSID',
-            cookieSecure: is_bool($secure) ? $secure : false,
-            sameSite: is_string($sameSite) && $sameSite !== '' ? $sameSite : 'Lax',
+        $sessionDriver = $configuration->get('session.driver', 'native');
+        $sessionFactory = new SessionFactory();
+        $session = $sessionFactory->create(
+            is_string($sessionDriver) && $sessionDriver !== '' ? $sessionDriver : 'native',
+            [
+                'name' => $configuration->get('session.name', 'NEXUSSESSID'),
+                'same_site' => $configuration->get('session.same_site', 'Lax'),
+                'secure' => $configuration->get('session.secure', false),
+                'path' => $configuration->get('session.path', $environment->path('.nexus/sessions')),
+            ],
         );
         $assets = new AssetManager($environment->basePath);
         $csrf = new CsrfTokenManager($session);
@@ -120,8 +123,8 @@ final class Bootstrap
         $frameworkViews = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views';
 
         $application->container()
+            ->instance(SessionFactory::class, $sessionFactory)
             ->instance(SessionInterface::class, $session)
-            ->instance(NativeSession::class, $session)
             ->instance(AssetManager::class, $assets)
             ->instance(CsrfTokenManager::class, $csrf)
             ->instance(AuthManager::class, $auth)
@@ -129,6 +132,10 @@ final class Bootstrap
             ->instance(FormValidator::class, $formValidator)
             ->instance(WebViewFeedback::class, $feedback)
             ->instance(WebViewContext::class, $context);
+
+        if ($session instanceof NativeSession) {
+            $application->container()->instance(NativeSession::class, $session);
+        }
 
         ViewFactory::register(
             application: $application,
