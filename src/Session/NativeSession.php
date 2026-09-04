@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace Nexus\Session;
 
+use SessionHandlerInterface;
+
 final class NativeSession implements SessionInterface
 {
+    private bool $handlerRegistered = false;
+
     public function __construct(
         private readonly string $name = 'NEXUSSESSID',
         private readonly bool $cookieSecure = false,
         private readonly string $sameSite = 'Lax',
+        private readonly ?string $savePath = null,
+        private readonly ?SessionHandlerInterface $handler = null,
     ) {
     }
 
@@ -21,6 +27,22 @@ final class NativeSession implements SessionInterface
 
         if (headers_sent()) {
             throw new \RuntimeException('The PHP session cannot start after headers have been sent.');
+        }
+
+        if ($this->savePath !== null) {
+            if (!is_dir($this->savePath) && !mkdir($this->savePath, 0777, true) && !is_dir($this->savePath)) {
+                throw new \RuntimeException(sprintf('Unable to create session save path "%s".', $this->savePath));
+            }
+
+            session_save_path($this->savePath);
+        }
+
+        if ($this->handler !== null && !$this->handlerRegistered) {
+            if (!session_set_save_handler($this->handler, true)) {
+                throw new \RuntimeException('Unable to register the PHP session handler.');
+            }
+
+            $this->handlerRegistered = true;
         }
 
         session_name($this->name);
