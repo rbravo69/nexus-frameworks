@@ -19,6 +19,7 @@ final class ViewFactory
         array $namespaces = [],
         ?string $cachePath = null,
         bool $debug = false,
+        ?WebViewContext $context = null,
     ): View {
         $finder = new ViewFinder([$viewsPath]);
 
@@ -28,11 +29,11 @@ final class ViewFactory
 
         $viewRenderer = match (strtolower(trim($renderer))) {
             'php', 'native', 'php-native' => new NativePhpRenderer($finder),
-            'twig' => new TwigRenderer($finder, $cachePath, $debug),
+            'twig' => new TwigRenderer($finder, $cachePath, $debug, $context),
             default => throw new InvalidArgumentException(sprintf('Unknown view renderer "%s".', $renderer)),
         };
 
-        $view = new View($viewRenderer);
+        $view = new View($viewRenderer, $context);
         $application->container()
             ->instance(ViewFinder::class, $finder)
             ->instance(ViewRendererInterface::class, $viewRenderer)
