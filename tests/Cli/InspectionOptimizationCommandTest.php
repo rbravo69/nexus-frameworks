@@ -94,4 +94,25 @@ final class InspectionOptimizationCommandTest extends TestCase
         self::assertStringContainsString('[OK] nexus.json present', $output->content());
         self::assertStringContainsString('[OK] vendor/autoload.php present', $output->content());
     }
+
+    public function testDoctorAcceptsFrameworkCheckoutWithoutProjectManifest(): void
+    {
+        $this->temporaryDirectory = new TemporaryDirectory();
+        file_put_contents($this->temporaryDirectory->path('composer.json'), '{}');
+        mkdir($this->temporaryDirectory->path('vendor'), 0777, true);
+        file_put_contents($this->temporaryDirectory->path('vendor/autoload.php'), '<?php');
+        mkdir($this->temporaryDirectory->path('bin'), 0777, true);
+        file_put_contents($this->temporaryDirectory->path('bin/nexus'), '#!/usr/bin/env php');
+        mkdir($this->temporaryDirectory->path('src/Cli'), 0777, true);
+        file_put_contents($this->temporaryDirectory->path('src/Cli/CliFactory.php'), '<?php');
+        $output = new BufferedOutput();
+        $cli = (new CliFactory())->create(
+            output: $output,
+            workingDirectory: $this->temporaryDirectory->path(),
+        );
+
+        self::assertSame(ExitCode::Success, $cli->run(['nexus', 'doctor']));
+        self::assertStringContainsString('[OK] Framework checkout detected', $output->content());
+        self::assertStringNotContainsString('nexus.json present', $output->content());
+    }
 }
