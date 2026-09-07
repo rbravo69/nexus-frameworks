@@ -30,42 +30,133 @@ final readonly class CodeGenerator
 
     public function controller(string $name, string $projectPath): string
     {
-        $class = $this->className($name, 'Controller');
-        $path = sprintf('src/Controller/%s.php', $class);
-        $content = str_replace('{{ class }}', $class, <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-namespace App\Controller;
-
-final class {{ class }}
-{
-}
-PHP
-        ) . PHP_EOL;
-
-        return $this->write($projectPath, $path, $content);
+        return $this->artifact($name, $projectPath, GeneratorType::Controller);
     }
 
     public function model(string $name, string $projectPath): string
     {
-        $class = $this->className($name);
-        $path = sprintf('src/Model/%s.php', $class);
-        $content = str_replace('{{ class }}', $class, <<<'PHP'
+        return $this->artifact($name, $projectPath, GeneratorType::Model);
+    }
+
+    public function service(string $name, string $projectPath): string
+    {
+        return $this->artifact($name, $projectPath, GeneratorType::Service);
+    }
+
+    public function repository(string $name, string $projectPath): string
+    {
+        return $this->artifact($name, $projectPath, GeneratorType::Repository);
+    }
+
+    public function middleware(string $name, string $projectPath): string
+    {
+        return $this->artifact($name, $projectPath, GeneratorType::Middleware);
+    }
+
+    public function request(string $name, string $projectPath): string
+    {
+        return $this->artifact($name, $projectPath, GeneratorType::Request);
+    }
+
+    public function event(string $name, string $projectPath): string
+    {
+        return $this->artifact($name, $projectPath, GeneratorType::Event);
+    }
+
+    public function listener(string $name, string $projectPath): string
+    {
+        return $this->artifact($name, $projectPath, GeneratorType::Listener);
+    }
+
+    private function artifact(string $name, string $projectPath, GeneratorType $type): string
+    {
+        [$directory, $namespace, $suffix] = match ($type) {
+            GeneratorType::Controller => ['src/Controller', 'App\\Controller', 'Controller'],
+            GeneratorType::Model => ['src/Model', 'App\\Model', ''],
+            GeneratorType::Service => ['src/Service', 'App\\Service', 'Service'],
+            GeneratorType::Repository => ['src/Repository', 'App\\Repository', 'Repository'],
+            GeneratorType::Middleware => ['src/Http/Middleware', 'App\\Http\\Middleware', 'Middleware'],
+            GeneratorType::Request => ['src/Http/Request', 'App\\Http\\Request', 'Request'],
+            GeneratorType::Event => ['src/Event', 'App\\Event', 'Event'],
+            GeneratorType::Listener => ['src/Event/Listener', 'App\\Event\\Listener', 'Listener'],
+            GeneratorType::Module => throw new InvalidInputException('Modules use the module scaffolder.'),
+        };
+
+        $class = $this->className($name, $suffix);
+        $path = sprintf('%s/%s.php', $directory, $class);
+
+        return $this->write(
+            $projectPath,
+            $path,
+            $this->artifactContent($class, $namespace, $type),
+        );
+    }
+
+    private function artifactContent(string $class, string $namespace, GeneratorType $type): string
+    {
+        if ($type === GeneratorType::Middleware) {
+            return str_replace(
+                ['{{ namespace }}', '{{ class }}'],
+                [$namespace, $class],
+                <<<'PHP'
 <?php
 
 declare(strict_types=1);
 
-namespace App\Model;
+namespace {{ namespace }};
+
+use Nexus\Http\MiddlewareInterface;
+use Nexus\Http\Request;
+use Nexus\Http\RequestHandlerInterface;
+use Nexus\Http\Response;
+
+final class {{ class }} implements MiddlewareInterface
+{
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        return $handler->handle($request);
+    }
+}
+PHP
+            ) . PHP_EOL;
+        }
+
+        if ($type === GeneratorType::Listener) {
+            return str_replace(
+                ['{{ namespace }}', '{{ class }}'],
+                [$namespace, $class],
+                <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+final class {{ class }}
+{
+    public function __invoke(object $event): void
+    {
+    }
+}
+PHP
+            ) . PHP_EOL;
+        }
+
+        return str_replace(
+            ['{{ namespace }}', '{{ class }}'],
+            [$namespace, $class],
+            <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
 
 final class {{ class }}
 {
 }
 PHP
         ) . PHP_EOL;
-
-        return $this->write($projectPath, $path, $content);
     }
 
     private function className(string $name, string $suffix = ''): string
