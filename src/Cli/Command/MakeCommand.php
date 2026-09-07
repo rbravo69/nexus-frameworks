@@ -52,6 +52,12 @@ final readonly class MakeCommand implements CommandInterface
             ),
             GeneratorType::Controller => $this->generator->controller($name, $this->workingDirectory),
             GeneratorType::Model => $this->generator->model($name, $this->workingDirectory),
+            GeneratorType::Service => $this->generator->service($name, $this->workingDirectory),
+            GeneratorType::Repository => $this->generator->repository($name, $this->workingDirectory),
+            GeneratorType::Middleware => $this->generator->middleware($name, $this->workingDirectory),
+            GeneratorType::Request => $this->generator->request($name, $this->workingDirectory),
+            GeneratorType::Event => $this->generator->event($name, $this->workingDirectory),
+            GeneratorType::Listener => $this->generator->listener($name, $this->workingDirectory),
         };
 
         $output->writeln('Created: ' . $path);
