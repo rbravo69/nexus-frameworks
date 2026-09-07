@@ -93,6 +93,36 @@ final class CodeGeneratorTest extends TestCase
         }
     }
 
+    public function testHexagonalScaffoldWiresApplicationToPortAndAdapterToPort(): void
+    {
+        $this->temporaryDirectory = new TemporaryDirectory();
+        $generator = new CodeGenerator(new Filesystem());
+        $generator->module('Orders', $this->temporaryDirectory->path(), ModuleArchitecture::Hexagonal);
+
+        $service = (string) file_get_contents($this->temporaryDirectory->path('src/Orders/Application/OrdersService.php'));
+        $adapter = (string) file_get_contents($this->temporaryDirectory->path('src/Orders/Adapter/InMemoryOrdersRepository.php'));
+
+        self::assertStringContainsString('use App\\Orders\\Port\\OrdersRepository;', $service);
+        self::assertStringContainsString('private OrdersRepository $repository', $service);
+        self::assertStringContainsString('use App\\Orders\\Port\\OrdersRepository;', $adapter);
+        self::assertStringContainsString('implements OrdersRepository', $adapter);
+    }
+
+    public function testDddScaffoldWiresApplicationAndInfrastructureThroughDomainContract(): void
+    {
+        $this->temporaryDirectory = new TemporaryDirectory();
+        $generator = new CodeGenerator(new Filesystem());
+        $generator->module('Payments', $this->temporaryDirectory->path(), ModuleArchitecture::Ddd);
+
+        $service = (string) file_get_contents($this->temporaryDirectory->path('src/Payments/Application/PaymentsApplicationService.php'));
+        $repository = (string) file_get_contents($this->temporaryDirectory->path('src/Payments/Infrastructure/InMemoryPaymentsRepository.php'));
+
+        self::assertStringContainsString('use App\\Payments\\Domain\\PaymentsRepository;', $service);
+        self::assertStringContainsString('private PaymentsRepository $repository', $service);
+        self::assertStringContainsString('use App\\Payments\\Domain\\PaymentsRepository;', $repository);
+        self::assertStringContainsString('implements PaymentsRepository', $repository);
+    }
+
     public function testModuleGenerationIsAtomicWhenAnyTargetAlreadyExists(): void
     {
         $this->temporaryDirectory = new TemporaryDirectory();
