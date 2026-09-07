@@ -46,10 +46,11 @@ final readonly class ConfigCommand implements CommandInterface
             throw new InvalidInputException('nexus.json is not valid JSON: ' . $exception->getMessage());
         }
 
-        if (!is_array($config)) {
+        if (!is_array($config) || array_is_list($config)) {
             throw new InvalidInputException('nexus.json must contain a JSON object.');
         }
 
+        /** @var array<string, mixed> $config */
         $key = $input->argument(0);
 
         if ($key !== null) {
@@ -98,6 +99,7 @@ final readonly class ConfigCommand implements CommandInterface
             $name = $prefix === '' ? $key : $prefix . '.' . $key;
 
             if (is_array($value) && !array_is_list($value)) {
+                /** @var array<string, mixed> $value */
                 $flat += $this->flatten($value, $name);
                 continue;
             }
