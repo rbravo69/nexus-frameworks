@@ -31,6 +31,9 @@ jobs:
       - name: Validate Composer metadata
         run: composer validate --strict
 
+      - name: Verify repository launcher
+        run: php nexus about
+
       - name: Install Nexus in a clean consumer
         shell: bash
         run: |
@@ -55,6 +58,7 @@ jobs:
           }
           JSON
           composer install --no-interaction --prefer-dist --no-dev
+          test -x vendor/bin/nexus
           vendor/bin/nexus about
 
   archive-install:
@@ -81,4 +85,5 @@ jobs:
           rm "$GITHUB_WORKSPACE/nexus-framework.zip"
           cd "$unpack_dir"
           composer install --no-interaction --prefer-dist --no-dev
+          php nexus about
           php bin/nexus about
