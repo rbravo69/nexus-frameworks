@@ -22,21 +22,36 @@ final class CodeGeneratorTest extends TestCase
         $this->temporaryDirectory?->remove();
     }
 
-    public function testItGeneratesModuleControllerAndModel(): void
+    public function testItGeneratesDeveloperArtifacts(): void
     {
         $this->temporaryDirectory = new TemporaryDirectory();
         $generator = new CodeGenerator(new Filesystem());
 
-        $module = $generator->module('Booking', $this->temporaryDirectory->path());
-        $controller = $generator->controller('Checkout', $this->temporaryDirectory->path());
-        $model = $generator->model('CustomerProfile', $this->temporaryDirectory->path());
+        $artifacts = [
+            $generator->module('Booking', $this->temporaryDirectory->path()),
+            $generator->controller('Checkout', $this->temporaryDirectory->path()),
+            $generator->model('CustomerProfile', $this->temporaryDirectory->path()),
+            $generator->service('Checkout', $this->temporaryDirectory->path()),
+            $generator->repository('Booking', $this->temporaryDirectory->path()),
+            $generator->middleware('Authenticate', $this->temporaryDirectory->path()),
+            $generator->request('CreateBooking', $this->temporaryDirectory->path()),
+            $generator->event('BookingCreated', $this->temporaryDirectory->path()),
+            $generator->listener('SendBookingConfirmation', $this->temporaryDirectory->path()),
+        ];
 
-        self::assertFileExists($module);
-        self::assertFileExists($controller);
-        self::assertFileExists($model);
-        self::assertStringContainsString('class BookingModule', (string) file_get_contents($module));
-        self::assertStringContainsString('class CheckoutController', (string) file_get_contents($controller));
-        self::assertStringContainsString('class CustomerProfile', (string) file_get_contents($model));
+        foreach ($artifacts as $artifact) {
+            self::assertFileExists($artifact);
+        }
+
+        self::assertStringContainsString('class BookingModule', (string) file_get_contents($artifacts[0]));
+        self::assertStringContainsString('class CheckoutController', (string) file_get_contents($artifacts[1]));
+        self::assertStringContainsString('class CustomerProfile', (string) file_get_contents($artifacts[2]));
+        self::assertStringContainsString('class CheckoutService', (string) file_get_contents($artifacts[3]));
+        self::assertStringContainsString('class BookingRepository', (string) file_get_contents($artifacts[4]));
+        self::assertStringContainsString('implements MiddlewareInterface', (string) file_get_contents($artifacts[5]));
+        self::assertStringContainsString('class CreateBookingRequest', (string) file_get_contents($artifacts[6]));
+        self::assertStringContainsString('class BookingCreatedEvent', (string) file_get_contents($artifacts[7]));
+        self::assertStringContainsString('class SendBookingConfirmationListener', (string) file_get_contents($artifacts[8]));
     }
 
     public function testItNeverOverwritesGeneratedFiles(): void
