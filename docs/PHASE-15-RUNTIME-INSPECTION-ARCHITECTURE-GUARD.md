@@ -16,6 +16,24 @@ Make Nexus architecture observable and enforceable without coupling applications
 - detection of circular module dependency graphs
 - deterministic, CI-friendly success/failure exit codes
 
+## CLI entry points
+
+When working directly from a cloned Nexus repository after `composer install`, use:
+
+```bash
+php nexus architecture:check
+```
+
+`php bin/nexus architecture:check` is equivalent.
+
+When Nexus is installed as a Composer dependency in another project, use:
+
+```bash
+vendor/bin/nexus architecture:check
+```
+
+A repository clone is not expected to contain its own `vendor/bin/nexus`, because Composer only creates that proxy when Nexus is installed as a dependency of a consumer project.
+
 ## Design
 
 The first guard works from the stable module-manifest contract already emitted by `nexus make:module`. It does not parse PHP source code or guess architecture from folder names.
