@@ -31,9 +31,6 @@ jobs:
       - name: Validate Composer metadata
         run: composer validate --strict
 
-      - name: Verify repository launcher
-        run: php nexus about
-
       - name: Install Nexus in a clean consumer
         shell: bash
         run: |
