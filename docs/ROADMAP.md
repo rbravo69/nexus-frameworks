@@ -47,6 +47,7 @@ and future direction; it is not, by itself, a runtime support contract.
 - Advanced relational introspection: views, materialized views, procedures, functions, triggers and sequences
 - Architecture Guard and observability
 - Smart project wizard and developer tooling
+  - Phase 14: expanded developer artifact generators (`service`, `repository`, `middleware`, `request`, `event`, `listener`) 🚧
 
 Reporting (PDF, CSV and TXT), ORM-independent pagination, and mail are planned
 as optional packages.

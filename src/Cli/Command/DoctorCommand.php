@@ -22,7 +22,7 @@ final readonly class DoctorCommand implements CommandInterface
 
     public function description(): string
     {
-        return 'Check whether the environment can run Nexus.';
+        return 'Check whether the environment and project can run Nexus.';
     }
 
     public function usage(): string
@@ -32,10 +32,14 @@ final readonly class DoctorCommand implements CommandInterface
 
     public function execute(Input $input, OutputInterface $output): int
     {
+        $root = rtrim($this->workingDirectory, '/\\');
         $checks = [
-            'PHP >= 8.4' => true,
+            'PHP >= 8.4' => version_compare(PHP_VERSION, '8.4.0', '>='),
             'JSON extension' => extension_loaded('json'),
-            'Writable working directory' => is_writable($this->workingDirectory),
+            'Writable working directory' => is_writable($root),
+            'composer.json present' => is_file($root . DIRECTORY_SEPARATOR . 'composer.json'),
+            'nexus.json present' => is_file($root . DIRECTORY_SEPARATOR . 'nexus.json'),
+            'vendor/autoload.php present' => is_file($root . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php'),
         ];
         $healthy = true;
 
