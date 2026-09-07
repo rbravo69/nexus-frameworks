@@ -14,10 +14,13 @@ use Nexus\Capability\PackageManagerInterface;
 use Nexus\Cli\Command\AboutCommand;
 use Nexus\Cli\Command\AddCommand;
 use Nexus\Cli\Command\BenchmarkCommand;
+use Nexus\Cli\Command\ConfigCommand;
 use Nexus\Cli\Command\DockerCommand;
 use Nexus\Cli\Command\DoctorCommand;
 use Nexus\Cli\Command\MakeCommand;
 use Nexus\Cli\Command\NewCommand;
+use Nexus\Cli\Command\OptimizeClearCommand;
+use Nexus\Cli\Command\OptimizeCommand;
 use Nexus\Cli\Command\RemoveCommand;
 use Nexus\Cli\Command\ServeCommand;
 use Nexus\Docker\DockerComposeGenerator;
@@ -54,6 +57,7 @@ final class CliFactory
             ->add(new AboutCommand())
             ->add(new AddCommand($installer))
             ->add(new BenchmarkCommand(new BenchmarkRunner()))
+            ->add(new ConfigCommand($workingDirectory))
             ->add(new DoctorCommand($workingDirectory));
 
         foreach (GeneratorType::cases() as $type) {
@@ -62,6 +66,8 @@ final class CliFactory
 
         $commands
             ->add(new NewCommand(new ProjectGenerator($filesystem), $prompter, $workingDirectory))
+            ->add(new OptimizeCommand($runner, $workingDirectory))
+            ->add(new OptimizeClearCommand($workingDirectory))
             ->add(new RemoveCommand($installer))
             ->add(new ServeCommand($runner, $workingDirectory));
 
