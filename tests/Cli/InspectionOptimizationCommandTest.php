@@ -40,6 +40,24 @@ final class InspectionOptimizationCommandTest extends TestCase
         self::assertStringContainsString('api', $output->content());
     }
 
+    public function testConfigExplainsFrameworkCheckoutWithoutProjectManifest(): void
+    {
+        $this->temporaryDirectory = new TemporaryDirectory();
+        mkdir($this->temporaryDirectory->path('bin'), 0777, true);
+        file_put_contents($this->temporaryDirectory->path('bin/nexus'), '#!/usr/bin/env php');
+        mkdir($this->temporaryDirectory->path('src/Cli'), 0777, true);
+        file_put_contents($this->temporaryDirectory->path('src/Cli/CliFactory.php'), '<?php');
+        $output = new BufferedOutput();
+        $cli = (new CliFactory())->create(
+            output: $output,
+            workingDirectory: $this->temporaryDirectory->path(),
+        );
+
+        self::assertSame(ExitCode::Success, $cli->run(['nexus', 'config']));
+        self::assertStringContainsString('Framework checkout detected', $output->content());
+        self::assertStringContainsString('nexus new <name>', $output->content());
+    }
+
     public function testOptimizeUsesAuthoritativeComposerAutoload(): void
     {
         $this->temporaryDirectory = new TemporaryDirectory();
