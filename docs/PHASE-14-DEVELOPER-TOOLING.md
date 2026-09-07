@@ -3,9 +3,9 @@
 ## Objective
 
 Improve day-to-day Nexus development without adding framework-wide runtime coupling.
-The first delivery expands the existing CLI generator model instead of creating a second scaffolding system.
+This phase expands the existing CLI instead of creating parallel tooling systems.
 
-## Delivered
+## Generators
 
 - `nexus make:service <name>`
 - `nexus make:repository <name>`
@@ -18,6 +18,16 @@ The first delivery expands the existing CLI generator model instead of creating 
 - Middleware scaffolds implement the Nexus HTTP middleware contract and pass through to the next handler by default.
 - Listener scaffolds expose an invokable event entry point without coupling generated applications to a specific event payload type.
 - Generated files continue to use the existing `Filesystem` safeguards and are never silently overwritten.
+
+## Inspection and optimization
+
+- `nexus config` prints the normalized `nexus.json` manifest using dot-notation keys.
+- `nexus config project.type` reads an individual manifest value without booting the application.
+- `nexus optimize` runs Composer authoritative classmap generation for production deployments.
+- `nexus optimize:clear` removes only `.nexus/cache`, including renderer/runtime caches beneath it.
+- `nexus doctor` now checks PHP, JSON, working-directory writability, `composer.json`, `nexus.json`, and `vendor/autoload.php`.
+
+A `routes` command is intentionally deferred until generated applications expose a stable route-loading contract. Nexus will not ship a regex-based route scanner that can silently report incomplete runtime state.
 
 ## Generated locations
 
@@ -38,8 +48,11 @@ The first delivery expands the existing CLI generator model instead of creating 
 - No ORM assumption in repository scaffolds.
 - No validator implementation is forced into request scaffolds.
 - No queue or async dependency is forced into events/listeners.
+- Config inspection reads project metadata only; it does not expose `.env` secrets.
+- Optimization delegates Composer-specific work to Composer rather than reimplementing autoload behavior.
+- Cache clearing is constrained to `.nexus/cache`.
 - Existing CLI APIs remain backwards compatible.
 
-## Follow-up
+## Verification
 
-Later Phase 14 increments can add runtime inspection and optimization commands such as route/config inspection, cache optimization and richer diagnostics once their stable runtime contracts are defined.
+Focused tests cover generator registration and output, dot-notation config inspection, authoritative Composer optimization, cache cleanup boundaries, and the expanded doctor checks.
