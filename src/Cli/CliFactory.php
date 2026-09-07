@@ -54,10 +54,13 @@ final class CliFactory
             ->add(new AboutCommand())
             ->add(new AddCommand($installer))
             ->add(new BenchmarkCommand(new BenchmarkRunner()))
-            ->add(new DoctorCommand($workingDirectory))
-            ->add(new MakeCommand(GeneratorType::Controller, $generator, $workingDirectory))
-            ->add(new MakeCommand(GeneratorType::Model, $generator, $workingDirectory))
-            ->add(new MakeCommand(GeneratorType::Module, $generator, $workingDirectory))
+            ->add(new DoctorCommand($workingDirectory));
+
+        foreach (GeneratorType::cases() as $type) {
+            $commands->add(new MakeCommand($type, $generator, $workingDirectory));
+        }
+
+        $commands
             ->add(new NewCommand(new ProjectGenerator($filesystem), $prompter, $workingDirectory))
             ->add(new RemoveCommand($installer))
             ->add(new ServeCommand($runner, $workingDirectory));
