@@ -34,7 +34,7 @@ final readonly class DoctorCommand implements CommandInterface
     {
         $root = rtrim($this->workingDirectory, '/\\');
         $checks = [
-            'PHP >= 8.4' => PHP_VERSION_ID >= 80400,
+            'PHP >= 8.4' => version_compare(PHP_VERSION, '8.4.0', '>='),
             'JSON extension' => extension_loaded('json'),
             'Writable working directory' => is_writable($root),
             'composer.json present' => is_file($root . DIRECTORY_SEPARATOR . 'composer.json'),
