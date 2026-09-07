@@ -34,9 +34,17 @@ final readonly class ConfigCommand implements CommandInterface
 
     public function execute(Input $input, OutputInterface $output): int
     {
-        $path = rtrim($this->workingDirectory, '/\\') . DIRECTORY_SEPARATOR . 'nexus.json';
+        $root = rtrim($this->workingDirectory, '/\\');
+        $path = $root . DIRECTORY_SEPARATOR . 'nexus.json';
 
         if (!is_file($path)) {
+            if ($this->isFrameworkCheckout($root)) {
+                $output->writeln('Framework checkout detected: nexus.json belongs to generated Nexus applications.');
+                $output->writeln('Create an application with "nexus new <name>" and run "nexus config" inside it.');
+
+                return ExitCode::Success;
+            }
+
             throw new InvalidInputException('nexus.json was not found in the working directory.');
         }
 
@@ -70,6 +78,12 @@ final readonly class ConfigCommand implements CommandInterface
         }
 
         return ExitCode::Success;
+    }
+
+    private function isFrameworkCheckout(string $root): bool
+    {
+        return is_file($root . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'nexus')
+            && is_file($root . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Bootstrap.php');
     }
 
     /** @param array<string, mixed> $config */
