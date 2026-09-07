@@ -26,7 +26,7 @@ final readonly class ServeCommand implements CommandInterface
 
     public function description(): string
     {
-        return 'Start the PHP development server.';
+        return 'Start the Nexus PHP development server.';
     }
 
     public function usage(): string
@@ -62,10 +62,24 @@ final readonly class ServeCommand implements CommandInterface
             throw new InvalidInputException(sprintf('Document root "%s" does not exist.', $docrootOption));
         }
 
+        $routerScript = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'server.php';
+
+        if (!is_file($routerScript)) {
+            throw new InvalidInputException('The Nexus development server router is missing.');
+        }
+
         $output->writeln(sprintf('Nexus development server: http://%s:%d', $host, $port));
+        $output->writeln(sprintf('Swagger UI: http://%s:%d/docs', $host, $port));
 
         return $this->runner->run(
-            [PHP_BINARY, '-S', sprintf('%s:%d', $host, $port), '-t', $resolvedDocroot],
+            [
+                PHP_BINARY,
+                '-S',
+                sprintf('%s:%d', $host, $port),
+                '-t',
+                $resolvedDocroot,
+                $routerScript,
+            ],
             $this->workingDirectory,
         );
     }

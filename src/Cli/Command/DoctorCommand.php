@@ -22,7 +22,7 @@ final readonly class DoctorCommand implements CommandInterface
 
     public function description(): string
     {
-        return 'Check whether the environment and project can run Nexus.';
+        return 'Check whether the environment and current Nexus context are healthy.';
     }
 
     public function usage(): string
@@ -33,14 +33,21 @@ final readonly class DoctorCommand implements CommandInterface
     public function execute(Input $input, OutputInterface $output): int
     {
         $root = rtrim($this->workingDirectory, '/\\');
+        $frameworkCheckout = $this->isFrameworkCheckout($root);
         $checks = [
             'PHP >= 8.4' => version_compare(PHP_VERSION, '8.4.0', '>='),
             'JSON extension' => extension_loaded('json'),
             'Writable working directory' => is_writable($root),
             'composer.json present' => is_file($root . DIRECTORY_SEPARATOR . 'composer.json'),
-            'nexus.json present' => is_file($root . DIRECTORY_SEPARATOR . 'nexus.json'),
             'vendor/autoload.php present' => is_file($root . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php'),
         ];
+
+        if ($frameworkCheckout) {
+            $checks['Framework checkout detected'] = true;
+        } else {
+            $checks['nexus.json present'] = is_file($root . DIRECTORY_SEPARATOR . 'nexus.json');
+        }
+
         $healthy = true;
 
         foreach ($checks as $label => $passed) {
@@ -49,5 +56,11 @@ final readonly class DoctorCommand implements CommandInterface
         }
 
         return $healthy ? ExitCode::Success : ExitCode::Failure;
+    }
+
+    private function isFrameworkCheckout(string $root): bool
+    {
+        return is_file($root . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'nexus')
+            && is_file($root . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Cli' . DIRECTORY_SEPARATOR . 'CliFactory.php');
     }
 }

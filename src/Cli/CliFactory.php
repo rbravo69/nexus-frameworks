@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nexus\Cli;
 
+use Nexus\Architecture\ArchitectureGuard;
 use Nexus\Benchmark\BenchmarkRunner;
 use Nexus\Capability\CapabilityCatalog;
 use Nexus\Capability\CapabilityInstaller;
@@ -13,6 +14,7 @@ use Nexus\Capability\ComposerPackageManager;
 use Nexus\Capability\PackageManagerInterface;
 use Nexus\Cli\Command\AboutCommand;
 use Nexus\Cli\Command\AddCommand;
+use Nexus\Cli\Command\ArchitectureCheckCommand;
 use Nexus\Cli\Command\BenchmarkCommand;
 use Nexus\Cli\Command\ConfigCommand;
 use Nexus\Cli\Command\DockerCommand;
@@ -56,6 +58,7 @@ final class CliFactory
         $commands
             ->add(new AboutCommand())
             ->add(new AddCommand($installer))
+            ->add(new ArchitectureCheckCommand(new ArchitectureGuard(), $workingDirectory))
             ->add(new BenchmarkCommand(new BenchmarkRunner()))
             ->add(new ConfigCommand($workingDirectory))
             ->add(new DoctorCommand($workingDirectory));

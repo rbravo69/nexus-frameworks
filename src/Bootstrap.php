@@ -19,8 +19,12 @@ use Nexus\Contracts\ConfigurationInterface;
 use Nexus\Contracts\ContainerInterface;
 use Nexus\Contracts\KernelInterface;
 use Nexus\Contracts\LifecycleInterface;
+use Nexus\Http\HttpKernel;
 use Nexus\Lifecycle\Lifecycle;
 use Nexus\Module\ModuleRegistry;
+use Nexus\OpenApi\OpenApiDocs;
+use Nexus\Rest\ValidationExceptionRenderer;
+use Nexus\Routing\Router;
 use Nexus\Security\CsrfTokenManager;
 use Nexus\Session\NativeSession;
 use Nexus\Session\SessionFactory;
@@ -80,6 +84,7 @@ final class Bootstrap
             ->instance(Application::class, $application)
             ->instance(KernelInterface::class, $application);
 
+        self::registerHttpRuntime($application, $configuration, $debug);
         self::registerViewRuntime($application, $runtimeEnvironment, $configuration);
 
         (new CapabilityLoader(
@@ -88,6 +93,40 @@ final class Bootstrap
         ))->load(new CapabilityManifest($basePath), $capabilities);
 
         return $application;
+    }
+
+    private static function registerHttpRuntime(
+        Application $application,
+        ConfigurationInterface $configuration,
+        bool $debug,
+    ): void {
+        $router = new Router();
+        $projectType = $configuration->get('app.type');
+
+        if ($projectType === 'api') {
+            $title = $configuration->get('app.name', 'Nexus API');
+            $version = $configuration->get('openapi.version', '1.0.0');
+            $docsPath = $configuration->get('openapi.docs_path', '/docs');
+            $schemaPath = $configuration->get('openapi.schema_path', '/openapi.json');
+
+            (new OpenApiDocs(
+                docsPath: is_string($docsPath) ? $docsPath : '/docs',
+                schemaPath: is_string($schemaPath) ? $schemaPath : '/openapi.json',
+                title: is_string($title) ? $title : 'Nexus API',
+                version: is_string($version) ? $version : '1.0.0',
+            ))->register($router);
+        }
+
+        $kernel = new HttpKernel(
+            router: $router,
+            container: $application->container(),
+            debug: $debug,
+            exceptionRenderers: [new ValidationExceptionRenderer()],
+        );
+
+        $application->container()
+            ->instance(Router::class, $router)
+            ->instance(HttpKernel::class, $kernel);
     }
 
     private static function registerViewRuntime(

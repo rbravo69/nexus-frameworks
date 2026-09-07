@@ -2,71 +2,171 @@
 
 **Simple by default. Powerful by design.**
 
-Nexus is a progressive and modular application framework for modern PHP. It
-lets a project start small and adopt modules, Hexagonal Architecture, DDD or
-CQRS only when the problem requires them.
+Nexus is a progressive, modular application framework for modern PHP. A project
+can start small and adopt modules, Hexagonal Architecture, DDD or CQRS only when
+the problem requires them.
 
 > Nexus recommends. The developer decides.
 
 ## Status
 
 Nexus is under active development and is **not ready for production**. The
-current milestone is the **v0.1 release-candidate hardening cycle**.
+current milestone is the **v0.1 release-candidate hardening cycle**. Pre-1.0 APIs
+may still change.
 
-The repository already contains working implementations for the foundation
-listed below, but pre-1.0 APIs may still change. Support claims are kept in the
-[verified support matrix](docs/SUPPORT_MATRIX.md) and are intentionally narrower
-than the long-term roadmap.
-
-## Design principles
-
-- A small core written in pure PHP.
-- Install and boot only the capabilities an application uses.
-- Business-oriented modules instead of framework-oriented folders.
-- Infrastructure behind contracts and replaceable adapters.
-- No mandatory HTTP, database, cache, ORM or Twig dependency in the core.
-- Measured performance and explicit behavior over hidden magic.
+Verified support claims live in [docs/SUPPORT_MATRIX.md](docs/SUPPORT_MATRIX.md).
+The roadmap describes future direction and must not be interpreted as a support
+contract.
 
 ## Requirements
 
 - PHP 8.4 or newer
 - Composer 2
 
-Optional integrations require their own extensions or packages only when used.
-For example, SQL Server uses PDO SQLSRV, Oracle uses PDO OCI, MongoDB uses the
-official `mongodb/mongodb` library plus `ext-mongodb`, Eloquent uses
-`illuminate/database`, and Twig is installed only when a project selects it.
+Optional integrations require their own packages or PHP extensions only when
+selected.
 
-## Verified v0.1 foundation
+## Install the repository for development or evaluation
 
-Implemented in the current tree:
+```bash
+git clone https://github.com/rbravo69/nexus-frameworks.git
+cd nexus-frameworks
+composer install
+php nexus about
+php nexus doctor
+php nexus list
+```
 
-- application lifecycle, configuration, modules and PSR-11 dependency injection;
-- CLI/project generation and manifest-driven optional capabilities;
-- HTTP routing, middleware, REST helpers, validation and OpenAPI generation;
-- renderer-neutral view runtime with PHP Native and optional Twig;
-- global and module-namespaced views through `ViewFinder`;
-- HTML responses through `View::response()` and `Response::html()`;
-- relational Database Core for PostgreSQL, MySQL, SQLite, SQL Server and Oracle;
-- neutral migrations, Code First and basic Database First;
-- optional Eloquent integration;
-- optional MongoDB adapter with CRUD, repositories, collections/index introspection;
-- cache, Redis contracts/cache/locks, CQRS, synchronous events;
-- seeders, factories and deterministic fake-data foundations;
-- optional Docker generation for FrankenPHP, PHP-FPM + Nginx, RoadRunner and OpenSwoole;
-- monolith frontend scaffolding for Twig, PHP Native, React, Vue.js, Svelte and SolidJS;
-- optional HTMX, Alpine.js, Tailwind CSS, Bootstrap, Bulma, DaisyUI and Material UI scaffolding;
-- PHPUnit, PHPStan max, PER-CS checks, dependency audit and benchmark smoke gates.
+The repository exposes two equivalent local entry points:
 
-Important validation boundaries are documented in the
-[support matrix](docs/SUPPORT_MATRIX.md). In particular, relational engines have
-live CI probes; MongoDB currently has adapter tests without a live MongoDB CI
-service, and Docker CI validates generated topology/buildability rather than an
-application-specific production deployment.
+```bash
+php nexus ...
+php bin/nexus ...
+```
 
-Queues, async runtimes, gRPC, messaging brokers, reporting, mail and other
-future packages remain roadmap work unless a document explicitly states
-otherwise.
+`php nexus` is the recommended command when working directly inside a clone of
+this repository.
+
+The package root is **not** installed into its own `vendor/` directory, so a
+repository clone is not expected to contain `vendor/bin/nexus`.
+
+## Install Nexus as a Composer dependency
+
+When Nexus is installed by another Composer project, Composer exposes the
+package binary in that consumer project's `vendor/bin` directory:
+
+```bash
+composer require nexus/framework
+vendor/bin/nexus about
+vendor/bin/nexus doctor
+vendor/bin/nexus list
+```
+
+This is the command form applications consuming Nexus should use.
+
+## CLI
+
+Inside the Nexus repository:
+
+```bash
+php nexus list
+php nexus new booking-api --type=api --no-interaction
+php nexus add redis
+php nexus remove redis
+php nexus make:module Booking --architecture=hexagonal --depends=identity
+php nexus make:controller Booking
+php nexus make:service Booking
+php nexus make:repository Booking
+php nexus make:middleware Authenticate
+php nexus make:request StoreBooking
+php nexus make:event BookingCreated
+php nexus make:listener NotifyBookingCreated
+php nexus config
+php nexus doctor
+php nexus optimize
+php nexus optimize:clear
+php nexus benchmark
+php nexus serve
+php nexus docker:init --runtime=frankenphp --services=postgres,redis
+```
+
+In a consumer application, replace `php nexus` with `vendor/bin/nexus`.
+
+## Architecture Guard
+
+Phase 15 introduces architecture validation over the stable module manifest
+contract generated by Nexus.
+
+```bash
+php nexus architecture:check
+```
+
+The command validates `src/**/module.json` manifests and reports invalid
+manifests, duplicate module names, self-dependencies, unknown dependencies and
+circular dependency graphs. It returns deterministic process exit codes so it
+can be used in CI.
+
+In an application that installed Nexus through Composer, run:
+
+```bash
+vendor/bin/nexus architecture:check
+```
+
+## Project generation
+
+Running `nexus new` without `--type` starts a focused project wizard. Available
+project intents include API REST, microservice, gRPC service, module,
+traditional monolith and modular monolith. A preset describes generated project
+intent and does not imply that every future transport is already implemented.
+
+Traditional and modular monolith presets can select frontend capabilities
+independently:
+
+- renderer: `twig`, `php`, `react`, `vue`, `svelte`, `solid` or `none`;
+- server-rendered interactivity: `none`, `htmx`, `alpine` or `htmx-alpine`;
+- CSS: `none`, `tailwind`, `bootstrap` or `bulma`;
+- components: `none`, `daisyui` or `mui`.
+
+Compatibility is validated before generation: HTMX/Alpine are limited to
+server-rendered Twig/PHP projects, DaisyUI requires Tailwind and Material UI
+requires React.
+
+Example:
+
+```bash
+php nexus new storefront \
+  --type=modular-monolith \
+  --frontend=twig \
+  --interactivity=htmx-alpine \
+  --css=tailwind \
+  --components=daisyui \
+  --no-interaction
+```
+
+## Modules
+
+Each module can choose its own architectural preset:
+
+- `minimal`
+- `mvc`
+- `layered`
+- `modular`
+- `hexagonal`
+- `clean`
+- `ddd`
+- `cqrs`
+- `custom`
+
+The generator creates only directories containing real files. Module manifests
+record architecture and dependencies explicitly.
+
+```bash
+php nexus make:module Orders --architecture=hexagonal
+php nexus make:module Payments --architecture=ddd --depends=orders
+php nexus architecture:check
+```
+
+See [docs/MODULES.md](docs/MODULES.md).
 
 ## Core preview
 
@@ -85,34 +185,16 @@ $app->boot();
 $app->shutdown();
 ```
 
-Modules are explicit and have a predictable lifecycle:
-
-```php
-$app->modules()->add(new BookingModule());
-$app->boot();
-```
-
-Constructor injection and interface bindings are handled by the built-in
-PSR-11 container:
-
-```php
-use Nexus\Container\Scope;
-
-$app->container()
-    ->bind(PaymentGateway::class, StripeGateway::class)
-    ->factory(
-        ExchangeRates::class,
-        fn ($container) => new ExchangeRates($container->get(HttpClient::class)),
-        Scope::Singleton,
-    );
-
-$service = $app->container()->get(CheckoutService::class);
-```
+Nexus includes a PSR-11 dependency injection container, application lifecycle,
+modules, HTTP/routing, REST/validation/OpenAPI foundations, renderer-neutral
+views, database abstractions, optional Eloquent and MongoDB integrations, cache,
+Redis contracts, CQRS/events, seeders/factories, Docker generation and frontend
+scaffolding.
 
 ## Server-rendered views
 
-Traditional and modular monoliths can use PHP Native or Twig for server-side
-rendering. The runtime is renderer-neutral:
+Traditional and modular monoliths can use PHP Native or optional Twig through a
+renderer-neutral runtime:
 
 ```text
 View
@@ -122,141 +204,30 @@ ViewRendererInterface
    └── TwigRenderer
 ```
 
-Register PHP Native:
+See [docs/VIEWS.md](docs/VIEWS.md).
 
-```php
-use Nexus\View\ViewFactory;
-
-$views = ViewFactory::register(
-    application: $app,
-    renderer: 'php',
-    viewsPath: __DIR__ . '/resources/views',
-);
-```
-
-Or register Twig:
-
-```php
-$views = ViewFactory::register(
-    application: $app,
-    renderer: 'twig',
-    viewsPath: __DIR__ . '/resources/views',
-    cachePath: __DIR__ . '/.nexus/cache/twig',
-    debug: false,
-);
-```
-
-Render a normal HTML response:
-
-```php
-return $views->response('properties/show.twig', [
-    'property' => $property,
-]);
-```
-
-Module-local views can be registered as namespaces:
-
-```php
-$views = ViewFactory::register(
-    application: $app,
-    renderer: 'twig',
-    viewsPath: __DIR__ . '/resources/views',
-    namespaces: [
-        'catalog' => __DIR__ . '/modules/Catalog/Views',
-    ],
-);
-
-return $views->response('catalog::products/card.twig', [
-    'product' => $product,
-]);
-```
-
-See the [views guide](docs/VIEWS.md) for the current runtime contract.
-
-## Development
+## Development verification
 
 ```bash
 composer install
 composer verify
+php nexus about
+php nexus doctor
 ```
 
-`composer verify` runs the unit test/static-analysis suite, coding-standard
-check and dependency security audit. CI also runs Docker runtime build checks,
-live relational integration probes and generated frontend build smoke tests.
-
-## CLI
-
-```bash
-vendor/bin/nexus list
-vendor/bin/nexus new booking-api --type=api --no-interaction
-vendor/bin/nexus add redis
-vendor/bin/nexus remove redis
-vendor/bin/nexus make:module Booking --architecture=hexagonal --depends=identity
-vendor/bin/nexus doctor
-vendor/bin/nexus benchmark
-vendor/bin/nexus serve
-vendor/bin/nexus docker:init --runtime=frankenphp --services=postgres,redis
-```
-
-Running `nexus new` without `--type` starts a focused wizard with six presets:
-API REST, microservice, gRPC service, module, traditional monolith and modular
-monolith. The preset name describes generated project intent; it does **not**
-mean every corresponding runtime transport (for example gRPC) is implemented
-in v0.1. CI can use `--no-interaction` for deterministic generation.
-
-Traditional and modular monolith presets can also scaffold a frontend stack.
-The wizard keeps rendering, interactivity, CSS and component libraries as
-separate decisions:
-
-- frontend renderer: `twig`, `php`, `react`, `vue`, `svelte`, `solid` or `none`;
-- server-rendered interactivity: `none`, `htmx`, `alpine` or `htmx-alpine`;
-- CSS framework: `none`, `tailwind`, `bootstrap` or `bulma`;
-- component library: `none`, `daisyui` or `mui`.
-
-Compatibility is validated before files are generated: HTMX/Alpine.js are
-restricted to Twig or PHP Native rendering, DaisyUI requires Tailwind CSS, and
-Material UI requires React.
-
-A deterministic non-interactive example is:
-
-```bash
-vendor/bin/nexus new storefront \
-  --type=modular-monolith \
-  --frontend=twig \
-  --interactivity=htmx-alpine \
-  --css=tailwind \
-  --components=daisyui \
-  --no-interaction
-```
-
-When frontend assets are needed Nexus generates `package.json`, Vite
-configuration and the corresponding source files. Twig is added to Composer
-only when the Twig renderer is selected. The selected stack is recorded in
-`nexus.json` so tooling can inspect it later.
-
-The frontend scaffold and the view runtime are intentionally separate. Selecting
-Twig prepares the project and installs Twig, while the application currently
-registers the view runtime explicitly with `ViewFactory::register()`. This keeps
-pre-1.0 behavior visible and avoids hidden boot-time magic.
-
-Capabilities are Composer packages selected in `nexus.json`. Nexus installs
-their dependencies in order, prevents unsafe removals and loads only the
-selected providers during application bootstrap. See the
-[capabilities guide](docs/CAPABILITIES.md).
-
-Every module chooses its own level of ceremony. Available presets are
-`minimal`, `mvc`, `layered`, `modular`, `hexagonal`, `clean`, `ddd`, `cqrs` and
-`custom`. The generator creates only directories containing real files, and
-the runtime detects missing dependencies and cycles before registration. See
-the [modules guide](docs/MODULES.md).
+`composer verify` runs tests, static analysis, coding standards and dependency
+security audit. CI additionally validates clean Composer consumer installation,
+package archives, CLI entry points, frontend scaffolds, Docker runtimes and live
+relational integration probes.
 
 ## Documentation
 
-- [Views](docs/VIEWS.md)
 - [Architecture](docs/ARCHITECTURE.md)
-- [Verified support matrix](docs/SUPPORT_MATRIX.md)
+- [Architecture Guard / Phase 15](docs/PHASE-15-RUNTIME-INSPECTION-ARCHITECTURE-GUARD.md)
 - [Capabilities](docs/CAPABILITIES.md)
 - [Modules](docs/MODULES.md)
+- [Views](docs/VIEWS.md)
+- [Verified support matrix](docs/SUPPORT_MATRIX.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Contribution guide](CONTRIBUTING.md)
 

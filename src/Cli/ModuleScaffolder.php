@@ -202,9 +202,19 @@ PHP
             ],
             ModuleArchitecture::Hexagonal => [
                 $root . '/Domain/' . $class . '.php' => $this->classFile($namespace . '\\Domain', $class, true),
-                $root . '/Application/' . $class . 'Service.php' => $this->classFile($namespace . '\\Application', $class . 'Service'),
+                $root . '/Application/' . $class . 'Service.php' => $this->serviceDependingOnContractFile(
+                    $namespace . '\\Application',
+                    $class . 'Service',
+                    $namespace . '\\Port\\' . $class . 'Repository',
+                    $class . 'Repository',
+                ),
                 $root . '/Port/' . $class . 'Repository.php' => $this->interfaceFile($namespace . '\\Port', $class . 'Repository'),
-                $root . '/Adapter/InMemory' . $class . 'Repository.php' => $this->classFile($namespace . '\\Adapter', 'InMemory' . $class . 'Repository'),
+                $root . '/Adapter/InMemory' . $class . 'Repository.php' => $this->classImplementingInterfaceFile(
+                    $namespace . '\\Adapter',
+                    'InMemory' . $class . 'Repository',
+                    $namespace . '\\Port\\' . $class . 'Repository',
+                    $class . 'Repository',
+                ),
             ],
             ModuleArchitecture::Clean => [
                 $root . '/Entity/' . $class . '.php' => $this->classFile($namespace . '\\Entity', $class, true),
@@ -215,8 +225,18 @@ PHP
             ModuleArchitecture::Ddd => [
                 $root . '/Domain/' . $class . 'Aggregate.php' => $this->classFile($namespace . '\\Domain', $class . 'Aggregate'),
                 $root . '/Domain/' . $class . 'Repository.php' => $this->interfaceFile($namespace . '\\Domain', $class . 'Repository'),
-                $root . '/Application/' . $class . 'ApplicationService.php' => $this->classFile($namespace . '\\Application', $class . 'ApplicationService'),
-                $root . '/Infrastructure/InMemory' . $class . 'Repository.php' => $this->classFile($namespace . '\\Infrastructure', 'InMemory' . $class . 'Repository'),
+                $root . '/Application/' . $class . 'ApplicationService.php' => $this->serviceDependingOnContractFile(
+                    $namespace . '\\Application',
+                    $class . 'ApplicationService',
+                    $namespace . '\\Domain\\' . $class . 'Repository',
+                    $class . 'Repository',
+                ),
+                $root . '/Infrastructure/InMemory' . $class . 'Repository.php' => $this->classImplementingInterfaceFile(
+                    $namespace . '\\Infrastructure',
+                    'InMemory' . $class . 'Repository',
+                    $namespace . '\\Domain\\' . $class . 'Repository',
+                    $class . 'Repository',
+                ),
             ],
             ModuleArchitecture::Cqrs => [
                 $root . '/Application/Command/Create' . $class . '.php' => $this->classFile($namespace . '\\Application\\Command', 'Create' . $class, true),
@@ -243,6 +263,36 @@ PHP
             "<?php\n\ndeclare(strict_types=1);\n\nnamespace %s;\n\ninterface %s\n{\n}\n",
             $namespace,
             $interface,
+        );
+    }
+
+    private function classImplementingInterfaceFile(
+        string $namespace,
+        string $class,
+        string $interfaceFqcn,
+        string $interface,
+    ): string {
+        return sprintf(
+            "<?php\n\ndeclare(strict_types=1);\n\nnamespace %s;\n\nuse %s;\n\nfinal class %s implements %s\n{\n}\n",
+            $namespace,
+            $interfaceFqcn,
+            $class,
+            $interface,
+        );
+    }
+
+    private function serviceDependingOnContractFile(
+        string $namespace,
+        string $class,
+        string $contractFqcn,
+        string $contract,
+    ): string {
+        return sprintf(
+            "<?php\n\ndeclare(strict_types=1);\n\nnamespace %s;\n\nuse %s;\n\nfinal readonly class %s\n{\n    public function __construct(private %s $repository)\n    {\n    }\n}\n",
+            $namespace,
+            $contractFqcn,
+            $class,
+            $contract,
         );
     }
 

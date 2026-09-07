@@ -46,8 +46,9 @@ and future direction; it is not, by itself, a runtime support contract.
 - RabbitMQ, Kafka and SQS adapters
 - Advanced relational introspection: views, materialized views, procedures, functions, triggers and sequences
 - Architecture Guard and observability
+  - Phase 15: runtime inspection and architecture guard 🚧
 - Smart project wizard and developer tooling
-  - Phase 14: expanded developer artifact generators (`service`, `repository`, `middleware`, `request`, `event`, `listener`) 🚧
+  - Phase 14: developer tooling, inspection and optimization ✅
 
 Reporting (PDF, CSV and TXT), ORM-independent pagination, and mail are planned
 as optional packages.
