@@ -83,7 +83,7 @@ final readonly class ConfigCommand implements CommandInterface
     private function isFrameworkCheckout(string $root): bool
     {
         return is_file($root . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'nexus')
-            && is_file($root . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Bootstrap.php');
+            && is_file($root . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Cli' . DIRECTORY_SEPARATOR . 'CliFactory.php');
     }
 
     /** @param array<string, mixed> $config */
